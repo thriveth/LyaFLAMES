@@ -1,0 +1,1000 @@
+#+title: Flames-LAEs project overview
+#+author: T. Emil Rivera-Thorsen 
+
+* README
+In this document, I intende to keep a list of what I am doing when,
+what I need to do in the future as well as clocking in and out of
+tasks for the VLT/FLAMES Lyman-\alpha Emitters project.
+
+* About the instrument (instrument handbook reading notes)
+:LOGBOOK:
+CLOCK: [2021-08-19 Thu 10:01]--[2021-08-19 Thu 12:30] =>  2:29
+:END:
+** Instrument overview
+- A multi-object, intermiedate- and high-resolution fibre
+  spectrograph.
+*** Components
+**** Corrector (not interesting for me)
+**** Fibre positioner
+Two plates (that seem to be identical?)
+**** Fibres over to UVES' red arm: 8 fibres
+***** UVES is designed to work only in slit mode
+***** Retrofitted 8 fibres to the Red arm only
+***** R \sim 47.000
+
+**** Own spectrograph: GIRAFFE with 3 settings
+- R = 7.500 -- 45.000
+- Coverage: 370 - 950 nm
+- HR grating and LR grating
+- 0.19"/pixel
+***** MEDUSA
+****** 131 objects including sky
+****** 1.2" aperture
+****** High resolution mode
+******* R = 19.000
+******* Coverage = \lambda/22 - \lambda/12
+Where \lambda is a defining wavelength
+****** Low resolution mode
+******* R = 7000
+******* Coverage = \lambda/9.5
+****** Fibres all lead to same slit (\times2)
+****** Some broken fibres
+***** IFU
+****** 15 small IFUs for each plate
+One additional thick sky fibre for each.
+****** Each IFU has 20 lenslets, 4\times4+2+2
+***** ARGUS
+****** Large IFU: 22\times14 microlenses
+
+***** Calibration 
+****** Simultaneous Calibration Unit (SCU)
+Takes Th-Ar lamp frames during observations in parallel to save time
+for observing. 
+**** UVES and GIRAFFE can run simultaneously w. specialized software
+
+**** Limitations and caveats
+
+** FLAMES features and problems
+*** Maximum reachable SNR
+Because of details of the fibre setup, there is an upper limit to the
+attainable SNR. It is hard to know exactly how much it is, but it is
+at least (and probably not a lot more than) 400. (page 38) .
+
+** GIRAFFE problems and features
+
+*** Problems with blue end in screenflats for ARGUS
+Problems with screen flats for ARGUS  for the bluest settings, not
+enough SNR in the flats in the bluest end.
+
+*** Contamination from simultaneous Th-Ar calib exposures
+Flux can get into neighboring fibres (or when getting into the slit or
+something... Can contaminate, in any case). Especially in the reddest
+setups. 
+
+** Instrument manual
+*** Reading notes
+** Data reduction cookbook
+*** Reading modes
+* Data reduction cookbook reading notes
+** 2. A brief overview of data reduction of multi-fiber spectroscopy data
+*** 2.1 Multi-fiber spectroscopy
+Basic steps of multi-fiber spectroscopy (p.10):
+
+**** Correcting for detector cosmics
+***** Subtracting bias
+***** Subtracting dark
+***** bad pixel correction
+***** Cosmic ray hits
+***** Correction of pixel to pixel variation (flat fielding)
+
+**** Fiber tracing: What object goes where on the CCD?
+They use a flat field observation for that. At various locations along
+the dispersion direction, the profile of the many fibres illuminating
+it is fitted to a gaussian, creating /Gaussian tubes/ in which the
+actual science signal later will be detected.  This makes it possible
+to know where to extract data from for each individual fibre on the
+CCD also later, when the signal may actually be too faint to see
+directly. 
+
+**** Extracton, flat-fiels spectrum and fiber transmission.
+First, flat field spectra are extracted in the flat field determined
+Gaussian tubes from before.  There is:
+
+- Summed extraction
+- Optimum extraction (Horne 1986)
+
+The extraction gives a flat field spectrum, and also gives fiber
+transmission profiles, since the light entering the fibres is assumed
+to be constant by design, and so if the brightness is markedly
+different on the CCD between fibre positions, it must be due to
+variations in transmission between fibres, it is a few percent between
+fibres (p. 14 top).
+
+Flat fielding is done in one rather than two dimensions when doing
+fibre spectroscopy.
+
+**** Scattered light correction
+Scatterd light is basically an underlying broad (constant?) component
+in the light profile of the fibres, underlying the narrow and strong
+Gaussians. It has two components:
+
+- Smooth component, removed by measuring the brightness in pixels in
+  between the fibre tunnels, fitting a function (polynoumial, I guess)
+  to these, and subtracting the resulting model.
+- Local component consisting in spillover from e.g. bright calibration
+  fibres into faint science fibres, is hard to model and requires some
+  work (but they don't tell which work), apart from taking a more
+  detailed look in the interfibre regions.
+
+**** Standard star calibration for IFU and ARGUS (not MEDUSA...?!)
+**** Wavelength calibration
+**** Extraction of science data
+**** Sky subtraction
+Nope. Not in the pipeline. (p. 17).
+#+attr_org: :width 700px
+[[file:org-download/2021-08-21_03-21-48_screenshot.png]]
+
+
+
+** 3. The pipeline: Gasgano
+
+* Observation settings
+
+| Spectrograph    | GIRAFFE       |
+| MODE            | MEDUSA fibres |
+| Aperture        | 1.2"          |
+| Resolving power |               |
+| Spectral band   | 3 of 'em      |
+
+* TODO Flames data organization
+:LOGBOOK:
+CLOCK: [2021-08-23 Mon 12:00]--[2021-08-23 Mon 12:01] =>  0:01
+:END:
+** Data structure overview
+:LOGBOOK:
+CLOCK: [2021-08-16 Mon 11:49]--[2021-08-16 Mon 12:10] =>  0:21
+:END:
+*** List of runs
+**** Run1
+**** Run2
+**** Run3
+* Information on targets
+** Redshifts 
+*** LEGO targets are all z\sim3.15
+
+- cite:nilsson2007
+
+* Understanding data
+** Preview data
+:LOGBOOK:
+CLOCK: [2021-08-17 Tue 21:42]--[2021-08-18 Wed 01:17] =>  3:35
+:END:
+
+Kind of a sandbox kind of place, not to be super structured.
+
+*** Imports and setup                                            :exploration:
+
+#+BEGIN_SRC jupyter-python :session default :results silent
+  %pylab
+  
+  from astropy.io import fits
+  from astropy.table import Table
+  from spectools.spectools import GalaxySpectrum, SpecView, SimpleFitGUI, SimpleMaskGUI
+#+END_SRC
+
+*** Load data
+
+#+BEGIN_SRC jupyter-python :session default
+  filepath = "./Data/reduced_science_products/"
+  readmepath = filepath + "README_647312.txt"
+  
+  
+  readme = open(readmepath, 'r')
+  lines = readme.readlines()
+  datafiles = {}
+  for l in lines:
+      if "SCIENCE.SPECTRUM" in l: 
+          filename = l.split("\t")[1].split()[1]
+          objname = fits.getheader(filepath+filename)["OBJECT"]
+          print("Bingo!", filename, l.split("\t")[-2], objname)
+          datafiles[objname] = filepath+filename
+#+END_SRC
+
+#+RESULTS[ce3691037f0021f3fdab050ba8ec251ff16f3c91]:
+#+begin_example
+  Bingo! ADP.2021-01-18T10:31:31.391.fits SCIENCE.SPECTRUM mw119001001
+  Bingo! ADP.2021-01-18T10:31:31.706.fits SCIENCE.SPECTRUM lego20
+  Bingo! ADP.2021-01-18T10:31:31.539.fits SCIENCE.SPECTRUM lego14
+  Bingo! ADP.2021-01-18T10:31:31.698.fits SCIENCE.SPECTRUM mw146002220
+  Bingo! ADP.2021-01-18T10:31:31.431.fits SCIENCE.SPECTRUM emw301008548
+  Bingo! ADP.2021-01-18T10:31:30.891.fits SCIENCE.SPECTRUM mudf6030
+  Bingo! ADP.2021-01-18T10:31:31.499.fits SCIENCE.SPECTRUM mw134002002
+  Bingo! ADP.2021-01-18T10:31:30.827.fits SCIENCE.SPECTRUM mw103006046
+  Bingo! ADP.2021-01-18T10:31:30.931.fits SCIENCE.SPECTRUM mw108006104
+  Bingo! ADP.2021-01-18T10:31:30.787.fits SCIENCE.SPECTRUM emw162005057
+  Bingo! ADP.2021-01-18T10:31:31.143.fits SCIENCE.SPECTRUM emw507001001
+  Bingo! ADP.2021-01-18T10:31:31.007.fits SCIENCE.SPECTRUM mw144003040
+  Bingo! ADP.2021-01-18T10:31:31.203.fits SCIENCE.SPECTRUM lego9
+  Bingo! ADP.2021-01-18T10:31:30.783.fits SCIENCE.SPECTRUM emw159003012
+  Bingo! ADP.2021-01-18T10:31:31.003.fits SCIENCE.SPECTRUM lego4
+  Bingo! ADP.2021-01-18T10:31:31.786.fits SCIENCE.SPECTRUM mw122002034
+  Bingo! ADP.2021-01-18T10:31:31.678.fits SCIENCE.SPECTRUM emw158002004
+  Bingo! ADP.2021-01-18T10:31:31.694.fits SCIENCE.SPECTRUM emw301007547
+  Bingo! ADP.2021-01-18T10:31:30.767.fits SCIENCE.SPECTRUM emw401010304
+  Bingo! ADP.2021-01-18T10:31:31.659.fits SCIENCE.SPECTRUM lego12
+  Bingo! ADP.2021-01-18T10:31:31.738.fits SCIENCE.SPECTRUM mudf174
+  Bingo! ADP.2021-01-18T10:31:30.699.fits SCIENCE.SPECTRUM emw156002018
+  Bingo! ADP.2021-01-18T10:31:31.055.fits SCIENCE.SPECTRUM mw124001001
+  Bingo! ADP.2021-01-18T10:31:30.967.fits SCIENCE.SPECTRUM lego16
+  Bingo! ADP.2021-01-18T10:31:31.559.fits SCIENCE.SPECTRUM mudf197
+  Bingo! ADP.2021-01-18T10:31:31.643.fits SCIENCE.SPECTRUM mw141004076
+  Bingo! ADP.2021-01-18T10:31:31.083.fits SCIENCE.SPECTRUM emw152008064
+  Bingo! ADP.2021-01-18T10:31:30.707.fits SCIENCE.SPECTRUM emw401011305
+  Bingo! ADP.2021-01-18T10:31:31.123.fits SCIENCE.SPECTRUM mw107004077
+  Bingo! ADP.2021-01-18T10:31:30.799.fits SCIENCE.SPECTRUM lego1
+  Bingo! ADP.2021-01-18T10:31:31.339.fits SCIENCE.SPECTRUM mudf7219
+  Bingo! ADP.2021-01-18T10:31:31.543.fits SCIENCE.SPECTRUM mw122004055
+  Bingo! ADP.2021-01-18T10:31:31.051.fits SCIENCE.SPECTRUM mw106003018
+  Bingo! ADP.2021-01-18T10:31:31.479.fits SCIENCE.SPECTRUM mw145004011
+  Bingo! ADP.2021-01-18T10:31:31.710.fits SCIENCE.SPECTRUM emw303009021
+  Bingo! ADP.2021-01-18T10:31:31.826.fits SCIENCE.SPECTRUM emw404001001
+  Bingo! ADP.2021-01-18T10:31:30.855.fits SCIENCE.SPECTRUM lego23
+  Bingo! ADP.2021-01-18T10:31:30.863.fits SCIENCE.SPECTRUM mudf7257
+  Bingo! ADP.2021-01-18T10:31:30.935.fits SCIENCE.SPECTRUM mw132002002
+  Bingo! ADP.2021-01-18T10:31:30.775.fits SCIENCE.SPECTRUM emw153002009
+  Bingo! ADP.2021-01-18T10:31:30.673.fits SCIENCE.SPECTRUM emw149004109
+  Bingo! ADP.2021-01-18T10:31:31.159.fits SCIENCE.SPECTRUM mudf7165
+  Bingo! ADP.2021-01-18T10:31:31.830.fits SCIENCE.SPECTRUM mw121001001
+  Bingo! ADP.2021-01-18T10:31:31.503.fits SCIENCE.SPECTRUM mw115004089
+  Bingo! ADP.2021-01-18T10:31:31.163.fits SCIENCE.SPECTRUM emw304006119
+  Bingo! ADP.2021-01-18T10:31:30.771.fits SCIENCE.SPECTRUM mudf6388
+  Bingo! ADP.2021-01-18T10:31:31.746.fits SCIENCE.SPECTRUM mw103001001
+  Bingo! ADP.2021-01-18T10:31:30.887.fits SCIENCE.SPECTRUM emw506010129
+  Bingo! ADP.2021-01-18T10:31:31.419.fits SCIENCE.SPECTRUM mw130002002
+  Bingo! ADP.2021-01-18T10:31:31.782.fits SCIENCE.SPECTRUM mw141002074
+  Bingo! ADP.2021-01-18T10:31:30.959.fits SCIENCE.SPECTRUM lego10
+  Bingo! ADP.2021-01-18T10:31:31.195.fits SCIENCE.SPECTRUM mw128007194
+  Bingo! ADP.2021-01-18T10:31:31.599.fits SCIENCE.SPECTRUM emw404004160
+  Bingo! ADP.2021-01-18T10:31:31.730.fits SCIENCE.SPECTRUM mudf2821
+  Bingo! ADP.2021-01-18T10:31:30.955.fits SCIENCE.SPECTRUM emw154005026
+  Bingo! ADP.2021-01-18T10:31:31.603.fits SCIENCE.SPECTRUM mudf7277
+  Bingo! ADP.2021-01-18T10:31:31.291.fits SCIENCE.SPECTRUM mudf6905
+  Bingo! ADP.2021-01-18T10:31:30.711.fits SCIENCE.SPECTRUM mudf7163
+  Bingo! ADP.2021-01-18T10:31:31.423.fits SCIENCE.SPECTRUM mw119002002
+  Bingo! ADP.2021-01-18T10:31:31.838.fits SCIENCE.SPECTRUM mudf1482
+  Bingo! ADP.2021-01-18T10:31:31.579.fits SCIENCE.SPECTRUM mw136003119
+  Bingo! ADP.2021-01-18T10:31:31.243.fits SCIENCE.SPECTRUM emw301006546
+  Bingo! ADP.2021-01-18T10:31:31.079.fits SCIENCE.SPECTRUM emw403004047
+  Bingo! ADP.2021-01-18T10:31:31.227.fits SCIENCE.SPECTRUM mudf1301
+  Bingo! ADP.2021-01-18T10:31:31.351.fits SCIENCE.SPECTRUM mw103005045
+  Bingo! ADP.2021-01-18T10:31:31.335.fits SCIENCE.SPECTRUM lego2
+  Bingo! ADP.2021-01-18T10:31:31.531.fits SCIENCE.SPECTRUM emw151005041
+  Bingo! ADP.2021-01-18T10:31:30.899.fits SCIENCE.SPECTRUM mw116005062
+  Bingo! ADP.2021-01-18T10:31:31.515.fits SCIENCE.SPECTRUM mw117002002
+  Bingo! ADP.2021-01-18T10:31:31.135.fits SCIENCE.SPECTRUM mudf2424
+  Bingo! ADP.2021-01-18T10:31:31.151.fits SCIENCE.SPECTRUM mw118002011
+  Bingo! ADP.2021-01-18T10:31:30.779.fits SCIENCE.SPECTRUM lego15
+  Bingo! ADP.2021-01-18T10:31:31.511.fits SCIENCE.SPECTRUM emw147002007
+  Bingo! ADP.2021-01-18T10:31:31.766.fits SCIENCE.SPECTRUM emw303004011
+  Bingo! ADP.2021-01-18T10:31:31.475.fits SCIENCE.SPECTRUM mudf2838
+  Bingo! ADP.2021-01-18T10:31:31.167.fits SCIENCE.SPECTRUM mudf7131
+  Bingo! ADP.2021-01-18T10:31:30.803.fits SCIENCE.SPECTRUM mw146003221
+  Bingo! ADP.2021-01-18T10:31:30.903.fits SCIENCE.SPECTRUM lego22
+  Bingo! ADP.2021-01-18T10:31:31.439.fits SCIENCE.SPECTRUM emw304003115
+  Bingo! ADP.2021-01-18T10:31:31.491.fits SCIENCE.SPECTRUM mudf2370
+  Bingo! ADP.2021-01-18T10:31:30.907.fits SCIENCE.SPECTRUM mudf5522
+  Bingo! ADP.2021-01-18T10:31:30.819.fits SCIENCE.SPECTRUM mw131002047
+  Bingo! ADP.2021-01-18T10:31:31.607.fits SCIENCE.SPECTRUM mw112005037
+  Bingo! ADP.2021-01-18T10:31:30.919.fits SCIENCE.SPECTRUM mw130001001
+  Bingo! ADP.2021-01-18T10:31:31.295.fits SCIENCE.SPECTRUM lego19
+  Bingo! ADP.2021-01-18T10:31:31.443.fits SCIENCE.SPECTRUM mudf3252
+  Bingo! ADP.2021-01-18T10:31:31.187.fits SCIENCE.SPECTRUM emw401007301
+  Bingo! ADP.2021-01-18T10:31:30.847.fits SCIENCE.SPECTRUM lego17
+  Bingo! ADP.2021-01-18T10:31:31.347.fits SCIENCE.SPECTRUM mudf109
+  Bingo! ADP.2021-01-18T10:31:31.355.fits SCIENCE.SPECTRUM emw153003010
+  Bingo! ADP.2021-01-18T10:31:31.115.fits SCIENCE.SPECTRUM mw126015035
+  Bingo! ADP.2021-01-18T10:31:30.723.fits SCIENCE.SPECTRUM mw122005056
+  Bingo! ADP.2021-01-18T10:31:30.731.fits SCIENCE.SPECTRUM mw115008100
+  Bingo! ADP.2021-01-18T10:31:31.107.fits SCIENCE.SPECTRUM emw150005029
+  Bingo! ADP.2021-01-18T10:31:31.379.fits SCIENCE.SPECTRUM lego21
+  Bingo! ADP.2021-01-18T10:31:31.035.fits SCIENCE.SPECTRUM emw152006057
+  Bingo! ADP.2021-01-18T10:31:31.631.fits SCIENCE.SPECTRUM mw111001001
+  Bingo! ADP.2021-01-18T10:31:30.815.fits SCIENCE.SPECTRUM mw141003075
+  Bingo! ADP.2021-01-18T10:31:31.842.fits SCIENCE.SPECTRUM emw404002002
+  Bingo! ADP.2021-01-18T10:31:30.943.fits SCIENCE.SPECTRUM mudf4089
+  Bingo! ADP.2021-01-18T10:31:31.183.fits SCIENCE.SPECTRUM mudf7169
+  Bingo! ADP.2021-01-18T10:31:31.467.fits SCIENCE.SPECTRUM mw117001001
+  Bingo! ADP.2021-01-18T10:31:30.755.fits SCIENCE.SPECTRUM mw129002081
+  Bingo! ADP.2021-01-18T10:31:31.814.fits SCIENCE.SPECTRUM mudf1541
+  Bingo! ADP.2021-01-18T10:31:30.759.fits SCIENCE.SPECTRUM emw402004146
+  Bingo! ADP.2021-01-18T10:31:31.471.fits SCIENCE.SPECTRUM mudf118
+  Bingo! ADP.2021-01-18T10:31:31.674.fits SCIENCE.SPECTRUM emw149003108
+  Bingo! ADP.2021-01-18T10:31:30.979.fits SCIENCE.SPECTRUM mudf1088
+  Bingo! ADP.2021-01-18T10:31:31.762.fits SCIENCE.SPECTRUM mw137001001
+  Bingo! ADP.2021-01-18T10:31:31.319.fits SCIENCE.SPECTRUM mw146007227
+  Bingo! ADP.2021-01-18T10:31:31.435.fits SCIENCE.SPECTRUM mw102012085
+  Bingo! ADP.2021-01-18T10:31:31.323.fits SCIENCE.SPECTRUM mudf1226
+  Bingo! ADP.2021-01-18T10:31:30.951.fits SCIENCE.SPECTRUM emw152005056
+#+end_example
+
+*** DONE Convert all fits files to text files
+:LOGBOOK:
+- State "DONE"       from "WAIT"       [2021-08-17 Tue 21:42]
+- State "PROG"       from "NEXT"       [2021-08-17 Tue 21:42]
+- State "NEXT"       from "TODO"       [2021-08-17 Tue 21:42]
+:END:
+
+#+BEGIN_SRC jupyter-python :session default 
+  for i, f in enumerate(datafiles.keys()):
+      spec = fits.getdata(datafiles[f])
+      wave = spec["WAVE"].flatten() * 10.
+      flux = spec["FLUX_REDUCED"].flatten()
+      errs = spec["ERR_REDUCED"].flatten()
+      tabl = Table(array([wave, flux, errs]).T, names=["wave", "flux", "noise"])
+      tabl.write("./Data/reduced_ecsv/reduced_{}.ecsv".format(f), overwrite=True)
+#+END_SRC
+
+#+RESULTS[413eeb28fd659f82ef85793c1dcebf0cf564148a]:
+
+*** Make list of ecsv's
+#+BEGIN_SRC jupyter-python :session default :results silent
+  specdict = {k: "./Data/reduced_ecsv/reduced_{}.ecsv".format(k) for k in datafiles.keys()}
+#+END_SRC
+
+*** Take a swing at making a more responsive GUI
+:LOGBOOK:
+CLOCK: [2021-08-18 Wed 10:32]--[2021-08-18 Wed 15:36] =>  5:04
+CLOCK: [2021-08-17 Tue 21:41]--[2021-08-17 Tue 21:41] =>  0:00
+:END:
+**** Write the thing
+#+BEGIN_SRC jupyter-python :session default :results silent
+  class MultiSpecView(SpecView):
+      """" Takes as input a dict of {objname: filepath}, 
+      with the filepath being for the ECSV spectrum file.
+      It can also take just a list of filepaths, or one single gile path.
+      """
+      _smooth_width = 1
+      _current_gal = 0
+      _showing_errs = 0
+  
+      def __init__(self, galaxies, ax=None, data=None, label='Data', dpi=200):
+          # Take over keys that Matplotlib usually uses.
+          # Will be handed back in a good shape later on.
+          try:  # A bit hacky but I don't want to give each its own try statement
+              plt.rcParams["keymap.save"].remove("s")
+              plt.rcParams["keymap.home"].remove("r")
+              plt.rcParams["keymap.pan"].remove("p")
+              plt.rcParams["keymap.yscale"].remove("l")
+              plt.rcParams["keymap.xscale"].remove("k")
+              plt.rcParams["keymap.back"].remove("left")
+              plt.rcParams["keymap.forward"].remove("right")
+          except ValueError:
+              pass
+          # Make sure that there are lists of galaxy names, filepaths,
+          if type(galaxies) == dict:
+              self.objnames = [n for n in galaxies.keys()]
+              self.fpaths = [p for p in galaxies.values()]
+          elif type(galaxies) == list:
+              self.fpaths = galaxies
+              self.objnames = [''] * len(galaxies)
+          else:
+              try:
+                  self.fpaths = list(np.atleast_1d(galaxies))
+                  self.objnames = [''] * len(self.fpaths)
+                  print("Object lists made")
+              except:
+                  raise
+          self.galindex = range(len(self.fpaths))
+          # Select first galaxy
+          galaxy = GalaxySpectrum()
+          print("Galaxy object created")
+          galaxy.read_data(self.fpaths[self._current_gal])
+          print("Galaxy data read")
+          galaxy.objname = self.objnames[self._current_gal]
+          print("Galaxy name set")
+          # and index numbers.
+          self.data = galaxy.datatable
+          self.galaxy = galaxy
+          self.ref_wl = None
+          self.label = label
+          # Determine whether we were passed an Axes instance, or need
+          # to create one.
+          if ax is None:
+              fig, ax = plt.subplots(1, dpi=dpi)
+          # Hand the axis over to the parent object
+          self.ax = ax
+          # Finally, build the plot
+          self.build_plot()
+  
+      def setup_galaxy(self):
+          self.clean_plot()
+          galaxy = GalaxySpectrum()
+          print("Galaxy object created")
+          galaxy.read_data(self.fpaths[self._current_gal])
+          print("Galaxy data read")
+          galaxy.objname = self.objnames[self._current_gal]
+          print("Galaxy name set")
+          # and index numbers.
+          self.data = galaxy.datatable
+          self.galaxy = galaxy
+          self.ref_wl = None
+          self.label = galaxy.objname
+          self.build_plot()
+  
+      def clean_plot(self):
+          for p in [self.dataplot, self.errplot, self.nametag]:
+              try:
+                  p.remove()
+              except AttributeError:
+                  pass
+  
+      def build_plot(self):
+          print("Building plot...")
+          self.dataplot = self.ax.plot(
+              self.data['wave'], self.data['flux'],
+              lw=1.5,
+              drawstyle='steps-mid',
+              label=self.label,
+              color='black',
+          )[0]
+          self.errplot = None
+          self.ax.axhline(0, ls='--', color='black')
+          self.ax.set_ylabel("Flux [{}]".format(self.data['flux'].unit))
+          self.ax.set_xlabel("Observed $\lambda$ [{}]".format(self.data['wave'].unit))
+          self.nametag = self.ax.annotate(
+              self.galaxy.objname+" ({}/{})".format(self._current_gal+1, len(self.fpaths)),
+              (0.02, 0.9), ha='left', xycoords='axes fraction')
+          # self._smooth_width = 1  # No smoothing by default
+          self.smooth_width(self._smooth_width)
+          # Do what I say when certain keys are pressed and the figure is closed.
+          self.ax.figure.canvas.mpl_connect('key_press_event', self.on_press)
+          self.ax.figure.canvas.mpl_connect('close_event', self.on_close)
+  
+      def on_press(self, event):
+          print("Pressed: ", event.key)
+          if event.key == "r":
+              print("It was an r!")
+              self.toggle_restframe_xaxis()
+          # Smoothing
+          if event.key in ["j", "down"]:  # Smooth less
+              dec = self._smooth_width - 1 if self._smooth_width > 1 else self._smooth_width
+              print("Smoothing kernel width: ", self._smooth_width)
+              self.smooth_width(dec)
+          if event.key in ["k", "up"]:  # Smooth less
+              self.smooth_width(self._smooth_width+1)
+              print("Smoothing kernel width: ", self._smooth_width)
+          # Toggle error spectrum plot
+          if event.key == "e":
+              self.toggle_errors()
+          # Toggle sky lines
+          if event.key == "s":
+              self.toggle_sky_lines()
+          # Go to previous or next galaxy
+          if event.key in ["h", "left"]:
+              g = self._current_gal
+              g = g - 1 if g > 0 else 0
+              self._current_gal = g
+              self.setup_galaxy()
+          if event.key in ["l", "right"]:
+              g = self._current_gal 
+              g = g + 1 if g < max(self.galindex) else g
+              self._current_gal = g
+              self.setup_galaxy()
+          # Refresh plot
+          plt.draw()
+  
+      def on_close(self, event):
+          plt.rcParams["keymap.save"].append("s")
+          plt.rcParams["keymap.home"].append("r")
+          plt.rcParams["keymap.pan"].append("p")
+          plt.rcParams["keymap.yscale"].append("l")
+          plt.rcParams["keymap.xscale"].append("k")
+          plt.rcParams["keymap.back"].append("left")
+          plt.rcParams["keymap.forward"].append("right")
+          print("Restored original keymap.")
+#+END_SRC
+
+** Understanding the Sky                                                  :sky:
+:LOGBOOK:
+CLOCK: [2021-08-30 Mon 09:45]--[2021-08-31 Tue 01:04] => 15:19
+CLOCK: [2021-08-30 Mon 13:00]--[2021-08-30 Mon 16:15] =>  3:15
+CLOCK: [2021-08-30 Mon 23:00]
+:END:
+*** Imports and setup
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  %pylab
+  
+  import subprocess
+  
+  import pandas as pd
+  
+  import uncertainties.unumpy as unp
+  from uncertainties.unumpy import nominal_values
+  from uncertainties.unumpy import std_devs as sdv
+  
+  from astropy.table import Table, vstack
+  from astropy.stats import sigma_clip
+  from astropy.visualization import simple_norm
+  
+  from spectools.spectools import GalaxySpectrum, SpecView
+  
+  from spectres import spectres
+  
+  from statsmodels.nonparametric.kernel_regression import KernelReg
+#+END_SRC
+ 
+*** Find files that are sky frames
+Sky frame have as many columns as the numbers of sky fibers, and each
+column is a 1D spectrum of a sky fiber.
+
+#+BEGIN_SRC jupyter-python :session sky
+  command1 = "dfits ./Data/Runs/106.219R.001/*.fits | fitsort pro.catg object obs.start | grep -i sky"
+  output_lines = subprocess.check_output(command1, shell=True, text=True).split("\n")[:-1]
+  skypaths = []
+  for l in output_lines: skypaths.append(l.split("\t")[0].strip())
+#+END_SRC
+
+#+RESULTS[abdb4fae24a5d3a28a48583e7b396880b77f7bab]:
+
+*** Open sky files
+**** First just make indexed lists
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  skyfiles = {}
+  skyOBs = {}
+  skydata = {}
+  medians = []
+  
+  for i, p in enumerate(skypaths):
+      skyOBs[i] = fits.getheader(p)['HIERARCH ESO OBS NAME']
+      skydata[i] = fits.getdata(p)
+  
+  for d in skydata.keys():
+      plot(median(skydata[d], 1), 'k-', lw=2, zorder=5)
+      medians.append(median(skydata[d], 1))
+      print(median(skydata[d]))
+  medmedianan = array(medians).T
+  tmp = plot(median(medmedianan, 1), ls="-", color="c", lw=3, zorder=6)
+  #+END_SRC
+
+  #+RESULTS:
+  : 6.6887403
+  : 6.4745674
+  : 7.43871
+  : 7.0861597
+
+**** Make stack of each OB's sky fibres to include in master sky later
+  
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  oblist = unique(list(skyOBs.values()))
+  skystacks = dict.fromkeys(oblist)
+  for k in skystacks.keys(): skystacks[k] = []
+  for d in skydata.keys():
+      print(d, skyOBs[d])
+      skystacks[skyOBs[d]].append(skydata[d])
+  
+  for o in skystacks.keys():
+      print(len(skystacks[o]))
+      skystacks[o] = mean(dstack(skystacks[o]), 2)
+  
+  fig, axes = subplots(1, len(skystacks)+1, dpi=200)
+  for l, o in enumerate(skystacks.keys()):
+      axes[l].pcolormesh(skystacks[o], vmin=-2, vmax=50)
+      axes[-1].pcolormesh(skystacks["GOODSS_F3_2"] - skystacks["GOODSS_F3_3"], vmin=-2, vmax=50)
+#+END_SRC
+
+#+RESULTS:
+: 0 GOODSS_F3_3
+: 1 GOODSS_F3_3
+: 2 GOODSS_F3_2
+: 3 GOODSS_F3_2
+: 2
+: 2
+
+*** Find processed fibre spectra
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  command2 = "dfits ./Data/Runs/106.219R.001/processed_by_ESO/*.fits | fitsort pro.catg object obs.start | grep -i stack"
+  output_lines = subprocess.check_output(command2, shell=True, text=True).split("\n")[:-1]
+  specpaths = []
+  for l in output_lines: specpaths.append(l.split("\t")[0].strip())
+#+END_SRC
+
+#+RESULTS[542beb06ef98c7344f02fcd23cbaa5e77ea97d7e]:
+
+*** Open spec files
+**** Outdated method, but may need some of the other products (check!)
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  specfiles = {}
+  specdata = {}
+  specOBs = {}
+  specIDs = {}
+  
+  for i, p in enumerate(specpaths):
+      specOBs[i] = fits.getheader(p)["HIERARCH ESO OBS NAME"]
+      specIDs[i] = fits.getheader(p)["OBJECT"]
+      specdata[i] = fits.getdata(p)
+  #+END_SRC
+
+  #+RESULTS:
+  
+**** Load spectra by OB and stuff in a hopefully future proof way
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+    specdict = dict.fromkeys(unique(list(specOBs.values())))
+    for i in specdict.keys(): specdict[i] = {}
+    
+    for i, p in enumerate(specpaths):
+        obname = fits.getheader(p)["HIERARCH ESO OBS NAME"]
+        targname = fits.getheader(p)["OBJECT"]
+        spectrum = fits.getdata(p)
+        specdict[obname][targname] = unp.uarray(
+            spectrum["FLUX_REDUCED"].flatten(),
+            spectrum["ERR_REDUCED"].flatten())
+    
+    for k in specdict.keys():
+        specdict[k] = pd.DataFrame.from_dict(specdict[k])
+  #+END_SRC
+
+  #+RESULTS:
+  
+*** Make grand object info pane
+Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
+
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  hlist = ["fiberID", "object", "comment", "z_Lya"]
+  
+  objinfo1 = Table.read('./Data/Targetinfo/GOODS_Center_F3.GIRMED.073308.targinfo.txt', format='ascii.basic')#[hlist]
+  objinfo2 = Table.read('./Data/Targetinfo/GOODS_Center_F7.GIRMED.080106.targinfo.txt', format='ascii.basic')[hlist]
+  objinfo3 = Table.read('./Data/Targetinfo/GOODS_Center_F8.GIRMED.083005.targinfo.txt', format='ascii.basic')[hlist]
+  
+  objinfo = vstack([objinfo1, objinfo2, objinfo3])
+  objinfo.add_index("object")
+#+END_SRC
+
+*** Make median stack for each OB
+
+#+BEGIN_SRC jupyter-python :session sky
+  waves = specdata[0]['WAVE'].flatten()
+  
+  obsblock1 = []  
+  obsblock2 = [] 
+  
+  for i in specdata.keys():
+      specid = specIDs[i]
+      z = objinfo.loc[specid]['z_Lya']
+      cenwave = 121.567 * (1 + z)
+      spec = specdata[i]['FLUX_REDUCED'].flatten()
+      errs = specdata[i]['ERR_REDUCED'].flatten()
+      # spec[(waves > cenwave-2) & (waves < cenwave+2)] = np.nan
+      spec = unp.uarray(spec, errs)
+      mask = [(waves > cenwave-2) & (waves < cenwave+2)]
+      spec = ma.masked_array(spec, mask, fill_value=np.nan)
+  
+      if specOBs[i]=='GOODSS_F3_2':
+          obsblock1.append(spec)
+      elif specOBs[i]=='GOODSS_F3_3':
+          obsblock2.append(spec)
+  
+  ob1arr = array(obsblock1).T
+  ob2arr = array(obsblock2).T
+  
+  # Add sky fibres to the mix
+  ob1arr = hstack([ob1arr, skystacks["GOODSS_F3_2"]])
+  ob2arr = hstack([ob2arr, skystacks["GOODSS_F3_3"]])
+  
+  ob1median = median(ob1arr, 1)
+  ob2median = median(ob2arr, 1)
+  # print(len(specOBs), ob1arr.shape, ob2arr.shape)
+#+END_SRC
+
+#+RESULTS[3cd6638002e8c36474c479c708a3d2a8c0b099e7]:
+
+*** Plot the whole thing
+  
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  skycolors = {'GOODSS_F3_2': 'orange', 'GOODSS_F3_3': 'red'}
+  speccolors = {'GOODSS_F3_2': 'green', 'GOODSS_F3_3': 'blue'}
+  smooth_width = 75
+  skernel = np.ones(smooth_width) / smooth_width
+  OB1, OB2 = None, None
+  figure(dpi=200)
+  for j, data in enumerate(obsblock1):
+      label = 'GOODSS_F3_2 science' if j==0 else '_nolegend'
+      sdata = convolve(unp.nominal_values(data), skernel, mode='same')
+      plot(waves, unp.nominal_values(sdata), ls='-',
+           color=speccolors['GOODSS_F3_2'], lw=.1, alpha=.3, label=label)
+  for j, data in enumerate(obsblock2):
+      label = 'GOODSS_F3_3 science' if j==0 else '_nolegend'
+      sdata = convolve(unp.nominal_values(data), skernel, mode='same')
+      plot(waves, unp.nominal_values(sdata), ls='-',
+          color=speccolors['GOODSS_F3_3'], lw=.1, alpha=.3, label=label)
+  # TODO May need to do some uncertainties stuff from here.
+  plot(waves, convolve(unp.nominal_values(ob1median), skernel, mode='same'), ls='-', lw=3, color='w', label='_nolegend', zorder=4)
+  plot(waves, convolve(unp.nominal_values(ob1median), skernel, mode='same'), ls='-', lw=2, color=speccolors['GOODSS_F3_2'], label='GOODSS_F3_2 median', zorder=4)
+  plot(waves, convolve(unp.nominal_values(ob2median), skernel, mode='same'), ls='-', lw=3, color='w', label='_nolegend', zorder=4)
+  plot(waves, convolve(unp.nominal_values(ob2median), skernel, mode='same'), ls='-', lw=2, color=speccolors['GOODSS_F3_3'], label='GOODSS_F3_3 median', zorder=4)
+  
+  OB1, OB2 = None, None
+  for s in skydata.keys():
+      OB = skyOBs[s]
+      if OB == 'GOODSS_F3_2':
+          if OB1 is None:
+              label = OB + " sky"
+              OB1 = 1
+          else:
+              label = '_nolegend'
+      elif OB == 'GOODSS_F3_3':
+          if OB2 is None:
+              label = OB + " sky"
+              OB2 = 1
+          else:
+              label = '_nolegend'
+      data = skydata[s]
+      for c in range(1):
+          label = label if c == 0 else '_nolegend'
+          cdata = median(data, 1)
+          scdata = sigma_clip(cdata, sigma=3, maxiters=10)
+          sscdata = convolve(scdata, skernel, mode='same')
+          plot(waves, sscdata, ls='-', color='w', lw=1.0, alpha=.99, label='_nolegend')
+          plot(waves, sscdata, ls='-', color=skycolors[OB], lw=0.80, alpha=.99, label=label, zorder=3)
+  annotate('Smoothing width: {} px'.format(smooth_width), (0.05, 0.9), ha='left', xycoords='axes fraction')
+  xlabel('$\lambda_{obs}$ [nm]')
+  ylabel("Flux density [counts]")
+  leg = legend(loc='upper right', fontsize='small')
+#+END_SRC
+
+#+RESULTS:
+
+*** DONE Subtract "master sky" from individual fibres
+:LOGBOOK:
+- State "DONE"       from "NEXT"       [2021-08-30 Mon 23:10]
+CLOCK: [2021-08-27 Fri 10:28]--[2021-08-27 Fri 16:28] =>  6:00
+- State "NEXT"       from "TODO"       [2021-08-25 Wed 18:05]
+- State "NEXT"       from "TODO"       [2021-08-25 Wed 18:05]
+:END:
+**** Notes
+Possibly also scale them somehow because individual filters are
+differing in throughput. Fairly easy for the blue setting, but will
+probably be quite hard in the redder settings that have strong sky
+emission lines, not just scattered moonlight.
+
+**** Scale them by the ratio of median pixels
+:LOGBOOK:
+CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
+:END:
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  masterskies = {"GOODSS_F3_2": ob1median, "GOODSS_F3_3": ob2median}
+  skysubbed_obs = dict.fromkeys(specdict.keys())
+  skysmooth = 1  # Pixels
+  for i, a in enumerate(specdict.keys()):
+      slits = specdict[a]
+      for s in slits.columns:
+          if slits[s].dtype.byteorder == '>':
+              slits[s] = slits[s].values.byteswap().newbyteorder()
+      slits = slits.sort_index(axis=1)
+      numslits = len(slits.columns)
+      slitmedians = slits.median(0)
+      mastersky = masterskies[a]
+      # mastersky = convolve(mastersky, np.ones(skysmooth)/skysmooth, mode='same')
+      scalefactors = slitmedians/median(mastersky)
+      scaledsky = mastersky.repeat(numslits).reshape(-1, numslits)# * array(scalefactor).reshape([1, -1])
+      for i in range(len(slits.columns)):  # scaledsky = 
+          scaledsky[:, i] *= median(slits.values[:, i]) / median(scaledsky[:, i])
+      skysubbed_obs[a] = slits - scaledsky
+  # stacked_obs = pd.concat(skysubbed_obs.values(), sort=True).groupby(level=0).mean()
+  stacked_obs = 0.
+  for b in skysubbed_obs.values():
+      stacked_obs += b
+  stacked_obs /= len(skysubbed_obs)
+  #+END_SRC
+
+  #+RESULTS:
+  
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  stacked_obs_out = stacked_obs.copy()
+  for col in stacked_obs.columns:
+      stacked_obs_out[col+'_data'] = unv(stacked_obs[col])
+      stacked_obs_out[col+'_errs'] = sdv(stacked_obs[col])
+      stacked_obs_out.drop(col, inplace=True, axis=1)
+#+END_SRC
+
+#+RESULTS:
+
+**** Plot for sanity check
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  fig, axes = subplots(1, 3, dpi=200, sharey=True, sharex=True)
+  # norm = simple_norm(unv(slits), min_cut=.2, max_cut=30, stretch='sqrt')
+  colorcut = 20
+  norm = simple_norm(unv(slits), min_cut=-colorcut, max_cut=colorcut, stretch='linear')
+  # cmap = "cubehelix"
+  cmap = "RdBu"
+  pc = axes[0].pcolormesh(unv(slits), norm=norm, cmap=cmap)
+  axes[1].pcolormesh(unv(scaledsky), norm=norm, cmap=cmap)
+  axes[2].pcolormesh(unv(stacked_obs), norm=norm, cmap=cmap)
+  axes[0].set_title("Science fibres")
+  axes[1].set_title("Master Sky")
+  axes[2].set_title("Sky subtracted science")
+  bar = fig.colorbar(pc, ax=axes.ravel().tolist(), shrink=0.95)
+  # fig.suptitle("FLAMES sky subtraction (sqrt scaled)")
+  fig.suptitle("FLAMES sky subtraction")
+  # colorbar()
+#+END_SRC
+
+:output:
+#+attr_org: :width 800 px
+[[file:./Figures/SkySubtraction.png]]
+:end:
+
+**** Save sky subracted science fibres
+#+BEGIN_SRC jupyter-python :session sky :results raw :cache nil
+  stacked_obs_out["wave"] = waves
+  stacked_obs_table = Table.from_pandas(stacked_obs_out)
+  # print(stacked_obs_table)
+  stacked_obs_table.write("./Products/Runs/106.219R.001/SkySubtractedFibresUnc.ecsv", overwrite=True)
+#+END_SRC
+
+#+RESULTS:
+
+**** Plot individual spectra
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  sot = stacked_obs_table
+  def maketheplot(objname, smooth=1, ax=plt.gca()):
+      kernel = np.ones(smooth)/smooth
+      data = convolve(sot[objname+"_data"], kernel, mode='same')
+      ax.plot(sot["wave"], data, 'k-')
+      z = objinfo.loc[objname]['z_Lya']
+      lyawave = 121.567 * (1 + z)
+      ax.axvline(lyawave, ls='--', color='0.4')
+  maketheplot('mudf1482', smooth=10)
+#+END_SRC
+
+#+RESULTS:
+
+**** Stack them in rest frame
+
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+        sot = stacked_obs_table
+        rebinned, rebinerr = {}, {}
+        wavebase = np.arange(100, 140, 0.02/4)
+        oversmooth = 10
+        overkernel = np.ones(oversmooth) / oversmooth
+        objects = unique([c.split('_')[0] for c in sot.colnames])
+        # for i in sot.colnames:
+        for i in objects:
+            if i == "wave": continue
+            z = objinfo.loc[i]["z_Lya"]
+            data = sot[i+"_data"]
+            errs = sot[i+"_errs"]
+            wav = waves / (1 + z)
+            # resam = np.interp(wavebase, wav, data, left=np.nan, right=np.nan)
+            resamdata, resamerrs = spectres(
+                wavebase, wav, data, spec_errs=errs,
+                fill=np.nan, verbose=False
+            )
+            outarray = unp.uarray(resamdata, resamerrs)
+            outmask = (isnan(resamdata))
+            rebinned[i] = resamdata  # ma.masked_array(outarray, outmask)
+            rebinerr[i] = resamerrs  # ma.masked_array(outarray, outmask)
+        rebindf = pd.DataFrame.from_dict(rebinned)
+        reberdf = pd.DataFrame.from_dict(rebinerr)
+  #+END_SRC
+
+  #+RESULTS:
+  
+  
+#+BEGIN_SRC jupyter-python :session sky :cache nil :results silent
+  meanstack = nanmean(rebindf, 1)
+  medianstack = nanmedian(rebindf, 1)
+  meerstack = sqrt(nansum(reberdf, 1))/len(reberdf.columns)
+  medierstack = nanmedian(reberdf, 1)
+  fig, ax = subplots(1, 1, dpi=200)
+  ax.plot(wavebase, meanstack)
+  ax.plot(wavebase, medianstack)
+  ax.plot(wavebase, meerstack*sqrt(pi/2))  # From phys SE Q#292871
+  ax.plot(wavebase, meerstack)
+  ax.axvline(121.567, ls="--", color="0.7")
+  ax.axhline(0, ls="--", color="k")
+#+END_SRC
+
+
+*** NEXT Check the error behavior, Matt style
+:LOGBOOK:
+- State "NEXT"       from              [2021-08-30 Mon 23:13]
+:END:
+**** Notes
+Which variables to use:
+
+- Wavelength vector :: ~waves~
+- Unsubtracted data :: ~slits~
+- Master sky :: ~scaledsky~ (matching each fiber), or ~mastersky~ (only
+  one vector)
+- For data :: Should I use ~stacked_obs~ which is from both OBs, or
+  ~skysubbed_obs~ which is from each OB?
+
+**** Define arrays to work on etc.
+
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  wavidx = where((waves > 470) & (waves < 480))[0]
+  
+  rawslice = slits.values[wavidx, :]
+  skyslice = scaledsky[wavidx, :]
+  mstslice = mastersky[wavidx]
+  subslice = stacked_obs.values[wavidx, :]
+  # mstslice.shape, subslice.shape, skyslice.shape, rawslice.shape
+#+END_SRC
+
+**** Measure ~mean()~, ~std()~ directly for each slit; compare
+
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  rawmeans = unv(rawslice).mean(0)
+  rawerrs = unv(rawslice).std(0)
+  rawsnrs = rawmeans/rawerrs 
+  
+  skymeans = unv(skyslice).mean(0)
+  skyerrs = unv(skyslice).std(0)
+  skysnrs = skymeans/skyerrs
+  
+  submeans = unv(subslice).mean(0)
+  suberrs = unv(subslice).std(0)
+  subsnrs = submeans/suberrs
+  
+  fit, axes = subplots(1, 3, sharex=True, sharey=True, dpi=200)
+  axes[0].pcolormesh(unv(rawslice), cmap='RdBu', norm=norm)
+  axes[1].pcolormesh(unv(skyslice), cmap='RdBu', norm=norm)
+  axes[2].pcolormesh(unv(subslice), cmap='RdBu', norm=norm)
+#+END_SRC
+
+
+  
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  figure(dpi=200)
+  plot(rawsnrs, label="Raw")
+  plot(skysnrs, label="Sky")
+  plot(subsnrs, label="Subtracted")
+  title("SNRs (470 nm < $\lambda$ < 480 nm)")
+  xlabel("Fiber #")
+  ylabel("SNR")
+  legend()
+#+END_SRC
+
+#+RESULTS[7d701bf4b86297f36d6bdb08b74c7f9259fefadd]:
+: <matplotlib.legend.Legend at 0x7f8344d53c50>
+
+
+
+
+* TODO Now: Check that we are pointing in a sane way
+:LOGBOOK:
+CLOCK: [2021-08-16 Mon 11:07]--[2021-08-16 Mon 12:07] =>  1:00
+CLOCK: [2021-08-16 Mon 11:07]--[2021-08-16 Mon 11:07] =>  0:00
+CLOCK: [2021-08-16 Mon 11:07]--[2021-08-16 Mon 11:07] =>  0:00
+:END:
+** TODO Find data at ESO user portal, under tab "delegated to you"
+
+* Org clock summaries
+
+for this project specifically
+
+#+BEGIN: clocktable :scope file :maxlevel 3
+#+CAPTION: Clock summary at [2021-08-31 Tue 01:05]
+| Headline                                       |     Time |         |      |
+|------------------------------------------------+----------+---------+------|
+| *Total time*                                     | *1d 13:05* |         |      |
+|------------------------------------------------+----------+---------+------|
+| About the instrument (instrument...            |     2:29 |         |      |
+| Flames data organization                       |     0:22 |         |      |
+| \_  Data structure overview                    |          |    0:21 |      |
+| Understanding data                             |  1d 9:14 |         |      |
+| \_  Preview data                               |          |    8:39 |      |
+| \_    Take a swing at making a more...         |          |         | 5:04 |
+| \_  Understanding the Sky                      |          | 1d 0:35 |      |
+| \_    Subtract "master sky" from individual... |          |         | 6:01 |
+| Now: Check that we are pointing in a...        |     1:00 |         |      |
+#+END:
+
+* Bibliography
+
+bibliography:/home/trive/Dropbox/org/AllPapers.bib
