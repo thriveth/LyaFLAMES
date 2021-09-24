@@ -318,8 +318,9 @@ First and foremost: Find the science frames given the run ID
     2  FLAMES FIBRE Table    1 BinTableHDU     51   1252R x 20C   [16A, 4A, 4A, 4A, 16A, 4A, 16A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A, 4A]   
 #+end_example
 
-* PROG Run pipeline                                                   :pipeline:
+* DONE Run pipeline                                                   :pipeline:
 :LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 15:25]
 - State "PROG"       from "WAIT"       [2021-09-10 Fri 09:50]
 - State "WAIT"       from "NEXT"       [2021-09-07 Tue 21:04] \\
   Awaiting reply from the ESO helpdesk.
@@ -923,8 +924,9 @@ It was alredy there!
 #+RESULTS[da22a7592deca49d21110f20a778ffb50b45b6d2]:
 : <matplotlib.colorbar.Colorbar at 0x7f0c6fde9850>
 
-** NEXT SCIENCE!!!
+** DONE SCIENCE!!!
 :LOGBOOK:
+- State "DONE"       from "NEXT"       [2021-09-23 Thu 14:41]
 - State "NEXT"       from              [2021-09-10 Fri 13:59]
 :END:
 *** Make ~.sof~ 's
@@ -968,6 +970,7 @@ It was alredy there!
               outfile.write(outline)
           outfile.write("Data/Runs/{}/pipe_products/bad_pixel_map.fits\tBAD_PIXEL_MAP\n".format(runID))
           outfile.write("Data/Runs/{}/pipe_products/master_bias.fits\tMASTER_BIAS\n".format(runID))
+          outfile.write("Data/Runs/{}/pipe_products/fiber_profile.fits\tFIBER_PROFILE\n".format(runID))
           for r in FFdict.keys():
               outline = FFdict[r] + "\t" + r + "\n"
               outfile.write(outline)
@@ -989,7 +992,10 @@ It was alredy there!
 : grep -i SCIENCE | grep -i GOODSS_F3_2
 :end:
 
-*** PROG Run esorex recipe /with OPTIMAL extraction/
+*** DONE Run esorex recipe /with OPTIMAL extraction/
+:LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 14:41]
+:END:
 #+name: esorexbash
 #+header: :shebang #! /bin/bash -i :dir ~/Arbejde/AAB-LyaFLAMES/
 #+begin_src bash :results ouput org :var RUN=runID OBs=OBs
@@ -997,7 +1003,7 @@ It was alredy there!
     DIRPATH="./Data/Runs/$RUN/science_products/$OB"
     [ ! -d $DIRPATH ] && mkdir $DIRPATH && echo "Created dir" || echo "It was alredy there!"
     echo $DIRPATH
-    esorex --output-dir=$DIRPATH giscience --generate-SDP-format=true ./Data/Runs/$RUN/6_science_$OB.sof
+    esorex --output-dir=$DIRPATH giscience --generate-SDP-format=true --extr-method=OPTIMAL ./Data/Runs/$RUN/6_science_$OB.sof
   done
 #+end_src
 
@@ -1010,7 +1016,6 @@ It was alredy there!
 
 [ INFO  ] giscience: No master dark present in frame set.
 [ INFO  ] giscience: No scattered light model present in frame set.
-[ INFO  ] giscience: No PSF profile parameters present in frame set.
 [ INFO  ] giscience: Averaging science frames ...
 [ INFO  ] giscience: Updating stacked science image properties ...
 [ INFO  ] giscience: Using bias area(s) '5:40:0:4095' for bias computation
@@ -1047,13 +1052,20 @@ It was alredy there!
 [ INFO  ] giscience: Scaling method      : linear, wavelength [nm]: min,max,range = 449.900, 507.800, 57.900
 [ INFO  ] giscience: Wavelength range    : Setup
 [ INFO  ] esorex: Calculating product checksums
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_reduced.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_reduced.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_extspectra.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_extspectra.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_exterrors.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_exterrors.fits
-[ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_extpixels.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_exttraces.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_exttraces.fits
+[ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_extmodel.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_rbnspectra.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_rbnspectra.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_rbnerrors.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_rbnerrors.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_ancillary.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_ancillary.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_spectrum_001.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_spectrum_002.fits
@@ -1168,10 +1180,10 @@ It was alredy there!
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_spectrum_111.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_3/science_spectrum_112.fits
 [ INFO  ] esorex: 120 products created
-[ INFO  ] esorex: Recipe operation(s) took           5.72 seconds to complete.
+[ INFO  ] esorex: Recipe operation(s) took           71.1 seconds to complete.
 [ INFO  ] esorex: Total size of 2 raw input frames  =    70.90 MB
 
-[ INFO  ] esorex: => processing rate of    12.40 MB/sec 
+[ INFO  ] esorex: => processing rate of     1.00 MB/sec 
 
 It was alredy there!
 ./Data/Runs/106.219R.001/science_products/GOODSS_F3_2
@@ -1180,7 +1192,6 @@ It was alredy there!
 
 [ INFO  ] giscience: No master dark present in frame set.
 [ INFO  ] giscience: No scattered light model present in frame set.
-[ INFO  ] giscience: No PSF profile parameters present in frame set.
 [ INFO  ] giscience: Averaging science frames ...
 [ INFO  ] giscience: Updating stacked science image properties ...
 [ INFO  ] giscience: Using bias area(s) '5:40:0:4095' for bias computation
@@ -1217,13 +1228,20 @@ It was alredy there!
 [ INFO  ] giscience: Scaling method      : linear, wavelength [nm]: min,max,range = 449.900, 507.800, 57.900
 [ INFO  ] giscience: Wavelength range    : Setup
 [ INFO  ] esorex: Calculating product checksums
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_reduced.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_reduced.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_extspectra.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_extspectra.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_exterrors.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_exterrors.fits
-[ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_extpixels.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_exttraces.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_exttraces.fits
+[ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_extmodel.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_rbnspectra.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_rbnspectra.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_rbnerrors.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_rbnerrors.fits
+[WARNING] esorex: Product final output path file already exists and will be overwritten (/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_ancillary.fits)
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_ancillary.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_spectrum_001.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_spectrum_002.fits
@@ -1338,20 +1356,23 @@ It was alredy there!
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_spectrum_111.fits
 [ INFO  ] esorex: Created product /home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/GOODSS_F3_2/science_spectrum_112.fits
 [ INFO  ] esorex: 120 products created
-[ INFO  ] esorex: Recipe operation(s) took           5.63 seconds to complete.
+[ INFO  ] esorex: Recipe operation(s) took           72.8 seconds to complete.
 [ INFO  ] esorex: Total size of 2 raw input frames  =    70.90 MB
 
-[ INFO  ] esorex: => processing rate of    12.59 MB/sec 
+[ INFO  ] esorex: => processing rate of     0.97 MB/sec 
 
 #+end_src
 
 
 
-**** WAIT Figure out why this doesn't work
+**** DONE Figure out why this doesn't work
 :LOGBOOK:
+- State "DONE"       from "WAIT"       [2021-09-23 Thu 14:31]
 - State "WAIT"       from              [2021-09-21 Tue 17:18]
 :END:
 
+Because it required the =fiber_profile.fits= file to work, which was not
+listed in the pipeline manual. Adding that, it worked!
 *** DONE Rename 1D spectra
 :LOGBOOK:
 - State "DONE"       from              [2021-09-18 Sat 23:21]
@@ -1371,7 +1392,7 @@ It was alredy there!
           shutil.move(p, newpath)
 #+END_SRC
 
-  #+RESULTS[d1725be8bc4fe6b41d07cd9c5e9f914f1197b4bc]:
+#+RESULTS[8c8d14343998b2692d879f121b8cf19d2a25c033]:
   
 #+BEGIN_SRC jupyter-python :session pipeline :var runID=runID OBs=OBs
   for thing in objnames:
@@ -1403,460 +1424,11 @@ It was alredy there!
       stackt.write(f"{stackpath}{thing}_1D.ecsv", overwrite=True)
 #+END_SRC
 
-#+RESULTS[b14f48fa823304c26ef3d181f9fd4c31d14d01ea]:
-#+begin_example
-  GOODSS_F3_3 mw122002034 existed!
-  GOODSS_F3_2 mw122002034 existed!
-  GOODSS_F3_3 mw129002081 existed!
-  GOODSS_F3_2 mw129002081 existed!
-  GOODSS_F3_3 mudf7277 existed!
-  GOODSS_F3_2 mudf7277 existed!
-  GOODSS_F3_3 mudf7131 existed!
-  GOODSS_F3_2 mudf7131 existed!
-  GOODSS_F3_3 mudf2838 existed!
-  GOODSS_F3_2 mudf2838 existed!
-  GOODSS_F3_3 mw141004076 existed!
-  GOODSS_F3_2 mw141004076 existed!
-  GOODSS_F3_3 emw304003115 existed!
-  GOODSS_F3_2 emw304003115 existed!
-  GOODSS_F3_3 mw126015035 existed!
-  GOODSS_F3_2 mw126015035 existed!
-  GOODSS_F3_3 mw103005045 existed!
-  GOODSS_F3_2 mw103005045 existed!
-  GOODSS_F3_3 mudf2821 existed!
-  GOODSS_F3_2 mudf2821 existed!
-  GOODSS_F3_3 emw303004011 existed!
-  GOODSS_F3_2 emw303004011 existed!
-  GOODSS_F3_3 mw115008100 existed!
-  GOODSS_F3_2 mw115008100 existed!
-  GOODSS_F3_3 lego9 existed!
-  GOODSS_F3_2 lego9 existed!
-  GOODSS_F3_3 emw153003010 existed!
-  GOODSS_F3_2 emw153003010 existed!
-  GOODSS_F3_3 emw159003012 existed!
-  GOODSS_F3_2 emw159003012 existed!
-  GOODSS_F3_3 emw402004146 existed!
-  GOODSS_F3_2 emw402004146 existed!
-  GOODSS_F3_3 mw103006046 existed!
-  GOODSS_F3_2 mw103006046 existed!
-  GOODSS_F3_3 emw401007301 existed!
-  GOODSS_F3_2 emw401007301 existed!
-  GOODSS_F3_3 mw131002047 existed!
-  GOODSS_F3_2 mw131002047 existed!
-  GOODSS_F3_3 emw152006057 existed!
-  GOODSS_F3_2 emw152006057 existed!
-  GOODSS_F3_3 mudf6905 existed!
-  GOODSS_F3_2 mudf6905 existed!
-  GOODSS_F3_3 emw404001001 existed!
-  GOODSS_F3_2 emw404001001 existed!
-  GOODSS_F3_3 mw132002002 existed!
-  GOODSS_F3_2 mw132002002 existed!
-  GOODSS_F3_3 mudf5522 existed!
-  GOODSS_F3_2 mudf5522 existed!
-  GOODSS_F3_3 lego14 existed!
-  GOODSS_F3_2 lego14 existed!
-  GOODSS_F3_3 mw118002011 existed!
-  GOODSS_F3_2 mw118002011 existed!
-  GOODSS_F3_3 emw158002004 existed!
-  GOODSS_F3_2 emw158002004 existed!
-  GOODSS_F3_3 mw137001001 existed!
-  GOODSS_F3_2 mw137001001 existed!
-  GOODSS_F3_3 emw301006546 existed!
-  GOODSS_F3_2 emw301006546 existed!
-  GOODSS_F3_3 mudf1301 existed!
-  GOODSS_F3_2 mudf1301 existed!
-  GOODSS_F3_3 mw141003075 existed!
-  GOODSS_F3_2 mw141003075 existed!
-  GOODSS_F3_3 emw506010129 existed!
-  GOODSS_F3_2 emw506010129 existed!
-  GOODSS_F3_3 mw146007227 existed!
-  GOODSS_F3_2 mw146007227 existed!
-  GOODSS_F3_3 mudf7169 existed!
-  GOODSS_F3_2 mudf7169 existed!
-  GOODSS_F3_3 emw150005029 existed!
-  GOODSS_F3_2 emw150005029 existed!
-  GOODSS_F3_3 mudf1541 existed!
-  GOODSS_F3_2 mudf1541 existed!
-  GOODSS_F3_3 mudf4089 existed!
-  GOODSS_F3_2 mudf4089 existed!
-  GOODSS_F3_3 emw304006119 existed!
-  GOODSS_F3_2 emw304006119 existed!
-  GOODSS_F3_3 mudf7165 existed!
-  GOODSS_F3_2 mudf7165 existed!
-  GOODSS_F3_3 mw119002002 existed!
-  GOODSS_F3_2 mw119002002 existed!
-  GOODSS_F3_3 emw404002002 existed!
-  GOODSS_F3_2 emw404002002 existed!
-  GOODSS_F3_3 mw130001001 existed!
-  GOODSS_F3_2 mw130001001 existed!
-  GOODSS_F3_3 mudf2424 existed!
-  GOODSS_F3_2 mudf2424 existed!
-  GOODSS_F3_3 emw401010304 existed!
-  GOODSS_F3_2 emw401010304 existed!
-  GOODSS_F3_3 mudf2370 existed!
-  GOODSS_F3_2 mudf2370 existed!
-  GOODSS_F3_3 emw301007547 existed!
-  GOODSS_F3_2 emw301007547 existed!
-  GOODSS_F3_3 mw146003221 existed!
-  GOODSS_F3_2 mw146003221 existed!
-  GOODSS_F3_3 mudf109 existed!
-  GOODSS_F3_2 mudf109 existed!
-  GOODSS_F3_3 emw147002007 existed!
-  GOODSS_F3_2 emw147002007 existed!
-  GOODSS_F3_3 mw141002074 existed!
-  GOODSS_F3_2 mw141002074 existed!
-  GOODSS_F3_3 mudf197 existed!
-  GOODSS_F3_2 mudf197 existed!
-  GOODSS_F3_3 mw117001001 existed!
-  GOODSS_F3_2 mw117001001 existed!
-  GOODSS_F3_3 mw146002220 existed!
-  GOODSS_F3_2 mw146002220 existed!
-  GOODSS_F3_3 lego10 existed!
-  GOODSS_F3_2 lego10 existed!
-  GOODSS_F3_3 mudf7257 existed!
-  GOODSS_F3_2 mudf7257 existed!
-  GOODSS_F3_3 mw106003018 existed!
-  GOODSS_F3_2 mw106003018 existed!
-  GOODSS_F3_3 mw144003040 existed!
-  GOODSS_F3_2 mw144003040 existed!
-  GOODSS_F3_3 emw149003108 existed!
-  GOODSS_F3_2 emw149003108 existed!
-  GOODSS_F3_3 mw112005037 existed!
-  GOODSS_F3_2 mw112005037 existed!
-  GOODSS_F3_3 emw162005057 existed!
-  GOODSS_F3_2 emw162005057 existed!
-  GOODSS_F3_3 mw145004011 existed!
-  GOODSS_F3_2 mw145004011 existed!
-  GOODSS_F3_3 mudf1088 existed!
-  GOODSS_F3_2 mudf1088 existed!
-  GOODSS_F3_3 lego15 existed!
-  GOODSS_F3_2 lego15 existed!
-  GOODSS_F3_3 emw301008548 existed!
-  GOODSS_F3_2 emw301008548 existed!
-  GOODSS_F3_3 lego4 existed!
-  GOODSS_F3_2 lego4 existed!
-  GOODSS_F3_3 emw401011305 existed!
-  GOODSS_F3_2 emw401011305 existed!
-  GOODSS_F3_3 lego23 existed!
-  GOODSS_F3_2 lego23 existed!
-  GOODSS_F3_3 lego2 existed!
-  GOODSS_F3_2 lego2 existed!
-  GOODSS_F3_3 lego21 existed!
-  GOODSS_F3_2 lego21 existed!
-  GOODSS_F3_3 mudf1482 existed!
-  GOODSS_F3_2 mudf1482 existed!
-  GOODSS_F3_3 mudf6388 existed!
-  GOODSS_F3_2 mudf6388 existed!
-  GOODSS_F3_3 mw122005056 existed!
-  GOODSS_F3_2 mw122005056 existed!
-  GOODSS_F3_3 mw128007194 existed!
-  GOODSS_F3_2 mw128007194 existed!
-  GOODSS_F3_3 emw151005041 existed!
-  GOODSS_F3_2 emw151005041 existed!
-  GOODSS_F3_3 mudf174 existed!
-  GOODSS_F3_2 mudf174 existed!
-  GOODSS_F3_3 mw136003119 existed!
-  GOODSS_F3_2 mw136003119 existed!
-  GOODSS_F3_3 mudf1226 existed!
-  GOODSS_F3_2 mudf1226 existed!
-  GOODSS_F3_3 mw121001001 existed!
-  GOODSS_F3_2 mw121001001 existed!
-  GOODSS_F3_3 emw404004160 existed!
-  GOODSS_F3_2 emw404004160 existed!
-  GOODSS_F3_3 mw119001001 existed!
-  GOODSS_F3_2 mw119001001 existed!
-  GOODSS_F3_3 lego20 existed!
-  GOODSS_F3_2 lego20 existed!
-  GOODSS_F3_3 lego17 existed!
-  GOODSS_F3_2 lego17 existed!
-  GOODSS_F3_3 mw130002002 existed!
-  GOODSS_F3_2 mw130002002 existed!
-  GOODSS_F3_3 mw115004089 existed!
-  GOODSS_F3_2 mw115004089 existed!
-  GOODSS_F3_3 mw107004077 existed!
-  GOODSS_F3_2 mw107004077 existed!
-  GOODSS_F3_3 mw108006104 existed!
-  GOODSS_F3_2 mw108006104 existed!
-  GOODSS_F3_3 mw103001001 existed!
-  GOODSS_F3_2 mw103001001 existed!
-  GOODSS_F3_3 lego1 existed!
-  GOODSS_F3_2 lego1 existed!
-  GOODSS_F3_3 mudf118 existed!
-  GOODSS_F3_2 mudf118 existed!
-  GOODSS_F3_3 emw303009021 existed!
-  GOODSS_F3_2 emw303009021 existed!
-  GOODSS_F3_3 emw149004109 existed!
-  GOODSS_F3_2 emw149004109 existed!
-  GOODSS_F3_3 lego19 existed!
-  GOODSS_F3_2 lego19 existed!
-  GOODSS_F3_3 mw111001001 existed!
-  GOODSS_F3_2 mw111001001 existed!
-  GOODSS_F3_3 emw403004047 existed!
-  GOODSS_F3_2 emw403004047 existed!
-  GOODSS_F3_3 emw152005056 existed!
-  GOODSS_F3_2 emw152005056 existed!
-  GOODSS_F3_3 lego16 existed!
-  GOODSS_F3_2 lego16 existed!
-  GOODSS_F3_3 emw152008064 existed!
-  GOODSS_F3_2 emw152008064 existed!
-  GOODSS_F3_3 emw507001001 existed!
-  GOODSS_F3_2 emw507001001 existed!
-  GOODSS_F3_3 emw153002009 existed!
-  GOODSS_F3_2 emw153002009 existed!
-  GOODSS_F3_3 mw117002002 existed!
-  GOODSS_F3_2 mw117002002 existed!
-  GOODSS_F3_3 mw122004055 existed!
-  GOODSS_F3_2 mw122004055 existed!
-  GOODSS_F3_3 mudf3252 existed!
-  GOODSS_F3_2 mudf3252 existed!
-  GOODSS_F3_3 lego22 existed!
-  GOODSS_F3_2 lego22 existed!
-  GOODSS_F3_3 mudf7219 existed!
-  GOODSS_F3_2 mudf7219 existed!
-  GOODSS_F3_3 mudf7163 existed!
-  GOODSS_F3_2 mudf7163 existed!
-  GOODSS_F3_3 emw154005026 existed!
-  GOODSS_F3_2 emw154005026 existed!
-  GOODSS_F3_3 mw134002002 existed!
-  GOODSS_F3_2 mw134002002 existed!
-  GOODSS_F3_3 mudf6030 existed!
-  GOODSS_F3_2 mudf6030 existed!
-  GOODSS_F3_3 mw102012085 existed!
-  GOODSS_F3_2 mw102012085 existed!
-  GOODSS_F3_3 emw156002018 existed!
-  GOODSS_F3_2 emw156002018 existed!
-  GOODSS_F3_3 mw116005062 existed!
-  GOODSS_F3_2 mw116005062 existed!
-  GOODSS_F3_3 mw124001001 existed!
-  GOODSS_F3_2 mw124001001 existed!
-  GOODSS_F3_3 mw122002034 existed!
-  GOODSS_F3_2 mw122002034 existed!
-  GOODSS_F3_3 mw129002081 existed!
-  GOODSS_F3_2 mw129002081 existed!
-  GOODSS_F3_3 mudf7277 existed!
-  GOODSS_F3_2 mudf7277 existed!
-  GOODSS_F3_3 mudf7131 existed!
-  GOODSS_F3_2 mudf7131 existed!
-  GOODSS_F3_3 mudf2838 existed!
-  GOODSS_F3_2 mudf2838 existed!
-  GOODSS_F3_3 mw141004076 existed!
-  GOODSS_F3_2 mw141004076 existed!
-  GOODSS_F3_3 emw304003115 existed!
-  GOODSS_F3_2 emw304003115 existed!
-  GOODSS_F3_3 mw126015035 existed!
-  GOODSS_F3_2 mw126015035 existed!
-  GOODSS_F3_3 mw103005045 existed!
-  GOODSS_F3_2 mw103005045 existed!
-  GOODSS_F3_3 mudf2821 existed!
-  GOODSS_F3_2 mudf2821 existed!
-  GOODSS_F3_3 emw303004011 existed!
-  GOODSS_F3_2 emw303004011 existed!
-  GOODSS_F3_3 mw115008100 existed!
-  GOODSS_F3_2 mw115008100 existed!
-  GOODSS_F3_3 lego9 existed!
-  GOODSS_F3_2 lego9 existed!
-  GOODSS_F3_3 emw153003010 existed!
-  GOODSS_F3_2 emw153003010 existed!
-  GOODSS_F3_3 emw159003012 existed!
-  GOODSS_F3_2 emw159003012 existed!
-  GOODSS_F3_3 emw402004146 existed!
-  GOODSS_F3_2 emw402004146 existed!
-  GOODSS_F3_3 mw103006046 existed!
-  GOODSS_F3_2 mw103006046 existed!
-  GOODSS_F3_3 emw401007301 existed!
-  GOODSS_F3_2 emw401007301 existed!
-  GOODSS_F3_3 mw131002047 existed!
-  GOODSS_F3_2 mw131002047 existed!
-  GOODSS_F3_3 emw152006057 existed!
-  GOODSS_F3_2 emw152006057 existed!
-  GOODSS_F3_3 mudf6905 existed!
-  GOODSS_F3_2 mudf6905 existed!
-  GOODSS_F3_3 emw404001001 existed!
-  GOODSS_F3_2 emw404001001 existed!
-  GOODSS_F3_3 mw132002002 existed!
-  GOODSS_F3_2 mw132002002 existed!
-  GOODSS_F3_3 mudf5522 existed!
-  GOODSS_F3_2 mudf5522 existed!
-  GOODSS_F3_3 lego14 existed!
-  GOODSS_F3_2 lego14 existed!
-  GOODSS_F3_3 mw118002011 existed!
-  GOODSS_F3_2 mw118002011 existed!
-  GOODSS_F3_3 emw158002004 existed!
-  GOODSS_F3_2 emw158002004 existed!
-  GOODSS_F3_3 mw137001001 existed!
-  GOODSS_F3_2 mw137001001 existed!
-  GOODSS_F3_3 emw301006546 existed!
-  GOODSS_F3_2 emw301006546 existed!
-  GOODSS_F3_3 mudf1301 existed!
-  GOODSS_F3_2 mudf1301 existed!
-  GOODSS_F3_3 mw141003075 existed!
-  GOODSS_F3_2 mw141003075 existed!
-  GOODSS_F3_3 emw506010129 existed!
-  GOODSS_F3_2 emw506010129 existed!
-  GOODSS_F3_3 mw146007227 existed!
-  GOODSS_F3_2 mw146007227 existed!
-  GOODSS_F3_3 mudf7169 existed!
-  GOODSS_F3_2 mudf7169 existed!
-  GOODSS_F3_3 emw150005029 existed!
-  GOODSS_F3_2 emw150005029 existed!
-  GOODSS_F3_3 mudf1541 existed!
-  GOODSS_F3_2 mudf1541 existed!
-  GOODSS_F3_3 mudf4089 existed!
-  GOODSS_F3_2 mudf4089 existed!
-  GOODSS_F3_3 emw304006119 existed!
-  GOODSS_F3_2 emw304006119 existed!
-  GOODSS_F3_3 mudf7165 existed!
-  GOODSS_F3_2 mudf7165 existed!
-  GOODSS_F3_3 mw119002002 existed!
-  GOODSS_F3_2 mw119002002 existed!
-  GOODSS_F3_3 emw404002002 existed!
-  GOODSS_F3_2 emw404002002 existed!
-  GOODSS_F3_3 mw130001001 existed!
-  GOODSS_F3_2 mw130001001 existed!
-  GOODSS_F3_3 mudf2424 existed!
-  GOODSS_F3_2 mudf2424 existed!
-  GOODSS_F3_3 emw401010304 existed!
-  GOODSS_F3_2 emw401010304 existed!
-  GOODSS_F3_3 mudf2370 existed!
-  GOODSS_F3_2 mudf2370 existed!
-  GOODSS_F3_3 emw301007547 existed!
-  GOODSS_F3_2 emw301007547 existed!
-  GOODSS_F3_3 mw146003221 existed!
-  GOODSS_F3_2 mw146003221 existed!
-  GOODSS_F3_3 mudf109 existed!
-  GOODSS_F3_2 mudf109 existed!
-  GOODSS_F3_3 emw147002007 existed!
-  GOODSS_F3_2 emw147002007 existed!
-  GOODSS_F3_3 mw141002074 existed!
-  GOODSS_F3_2 mw141002074 existed!
-  GOODSS_F3_3 mudf197 existed!
-  GOODSS_F3_2 mudf197 existed!
-  GOODSS_F3_3 mw117001001 existed!
-  GOODSS_F3_2 mw117001001 existed!
-  GOODSS_F3_3 mw146002220 existed!
-  GOODSS_F3_2 mw146002220 existed!
-  GOODSS_F3_3 lego10 existed!
-  GOODSS_F3_2 lego10 existed!
-  GOODSS_F3_3 mudf7257 existed!
-  GOODSS_F3_2 mudf7257 existed!
-  GOODSS_F3_3 mw106003018 existed!
-  GOODSS_F3_2 mw106003018 existed!
-  GOODSS_F3_3 mw144003040 existed!
-  GOODSS_F3_2 mw144003040 existed!
-  GOODSS_F3_3 emw149003108 existed!
-  GOODSS_F3_2 emw149003108 existed!
-  GOODSS_F3_3 mw112005037 existed!
-  GOODSS_F3_2 mw112005037 existed!
-  GOODSS_F3_3 emw162005057 existed!
-  GOODSS_F3_2 emw162005057 existed!
-  GOODSS_F3_3 mw145004011 existed!
-  GOODSS_F3_2 mw145004011 existed!
-  GOODSS_F3_3 mudf1088 existed!
-  GOODSS_F3_2 mudf1088 existed!
-  GOODSS_F3_3 lego15 existed!
-  GOODSS_F3_2 lego15 existed!
-  GOODSS_F3_3 emw301008548 existed!
-  GOODSS_F3_2 emw301008548 existed!
-  GOODSS_F3_3 lego4 existed!
-  GOODSS_F3_2 lego4 existed!
-  GOODSS_F3_3 emw401011305 existed!
-  GOODSS_F3_2 emw401011305 existed!
-  GOODSS_F3_3 lego23 existed!
-  GOODSS_F3_2 lego23 existed!
-  GOODSS_F3_3 lego2 existed!
-  GOODSS_F3_2 lego2 existed!
-  GOODSS_F3_3 lego21 existed!
-  GOODSS_F3_2 lego21 existed!
-  GOODSS_F3_3 mudf1482 existed!
-  GOODSS_F3_2 mudf1482 existed!
-  GOODSS_F3_3 mudf6388 existed!
-  GOODSS_F3_2 mudf6388 existed!
-  GOODSS_F3_3 mw122005056 existed!
-  GOODSS_F3_2 mw122005056 existed!
-  GOODSS_F3_3 mw128007194 existed!
-  GOODSS_F3_2 mw128007194 existed!
-  GOODSS_F3_3 emw151005041 existed!
-  GOODSS_F3_2 emw151005041 existed!
-  GOODSS_F3_3 mudf174 existed!
-  GOODSS_F3_2 mudf174 existed!
-  GOODSS_F3_3 mw136003119 existed!
-  GOODSS_F3_2 mw136003119 existed!
-  GOODSS_F3_3 mudf1226 existed!
-  GOODSS_F3_2 mudf1226 existed!
-  GOODSS_F3_3 mw121001001 existed!
-  GOODSS_F3_2 mw121001001 existed!
-  GOODSS_F3_3 emw404004160 existed!
-  GOODSS_F3_2 emw404004160 existed!
-  GOODSS_F3_3 mw119001001 existed!
-  GOODSS_F3_2 mw119001001 existed!
-  GOODSS_F3_3 lego20 existed!
-  GOODSS_F3_2 lego20 existed!
-  GOODSS_F3_3 lego17 existed!
-  GOODSS_F3_2 lego17 existed!
-  GOODSS_F3_3 mw130002002 existed!
-  GOODSS_F3_2 mw130002002 existed!
-  GOODSS_F3_3 mw115004089 existed!
-  GOODSS_F3_2 mw115004089 existed!
-  GOODSS_F3_3 mw107004077 existed!
-  GOODSS_F3_2 mw107004077 existed!
-  GOODSS_F3_3 mw108006104 existed!
-  GOODSS_F3_2 mw108006104 existed!
-  GOODSS_F3_3 mw103001001 existed!
-  GOODSS_F3_2 mw103001001 existed!
-  GOODSS_F3_3 lego1 existed!
-  GOODSS_F3_2 lego1 existed!
-  GOODSS_F3_3 mudf118 existed!
-  GOODSS_F3_2 mudf118 existed!
-  GOODSS_F3_3 emw303009021 existed!
-  GOODSS_F3_2 emw303009021 existed!
-  GOODSS_F3_3 emw149004109 existed!
-  GOODSS_F3_2 emw149004109 existed!
-  GOODSS_F3_3 lego19 existed!
-  GOODSS_F3_2 lego19 existed!
-  GOODSS_F3_3 mw111001001 existed!
-  GOODSS_F3_2 mw111001001 existed!
-  GOODSS_F3_3 emw403004047 existed!
-  GOODSS_F3_2 emw403004047 existed!
-  GOODSS_F3_3 emw152005056 existed!
-  GOODSS_F3_2 emw152005056 existed!
-  GOODSS_F3_3 lego16 existed!
-  GOODSS_F3_2 lego16 existed!
-  GOODSS_F3_3 emw152008064 existed!
-  GOODSS_F3_2 emw152008064 existed!
-  GOODSS_F3_3 emw507001001 existed!
-  GOODSS_F3_2 emw507001001 existed!
-  GOODSS_F3_3 emw153002009 existed!
-  GOODSS_F3_2 emw153002009 existed!
-  GOODSS_F3_3 mw117002002 existed!
-  GOODSS_F3_2 mw117002002 existed!
-  GOODSS_F3_3 mw122004055 existed!
-  GOODSS_F3_2 mw122004055 existed!
-  GOODSS_F3_3 mudf3252 existed!
-  GOODSS_F3_2 mudf3252 existed!
-  GOODSS_F3_3 lego22 existed!
-  GOODSS_F3_2 lego22 existed!
-  GOODSS_F3_3 mudf7219 existed!
-  GOODSS_F3_2 mudf7219 existed!
-  GOODSS_F3_3 mudf7163 existed!
-  GOODSS_F3_2 mudf7163 existed!
-  GOODSS_F3_3 emw154005026 existed!
-  GOODSS_F3_2 emw154005026 existed!
-  GOODSS_F3_3 mw134002002 existed!
-  GOODSS_F3_2 mw134002002 existed!
-  GOODSS_F3_3 mudf6030 existed!
-  GOODSS_F3_2 mudf6030 existed!
-  GOODSS_F3_3 mw102012085 existed!
-  GOODSS_F3_2 mw102012085 existed!
-  GOODSS_F3_3 emw156002018 existed!
-  GOODSS_F3_2 emw156002018 existed!
-  GOODSS_F3_3 mw116005062 existed!
-  GOODSS_F3_2 mw116005062 existed!
-  GOODSS_F3_3 mw124001001 existed!
-  GOODSS_F3_2 mw124001001 existed!
-#+end_example
+#+RESULTS[edca2d85bc109fc09b5472962bb10601ce2538e4]:
 
-* PROG Check pipeline products
+* DONE Check pipeline products
 :LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 15:25]
 - State "PROG"       from "TODO"       [2021-09-18 Sat 23:19]
 - State "NEXT"       from              [2021-09-01 Wed 16:57]
 :END:
@@ -1895,9 +1467,14 @@ much. However, they DO show that at least one star for each frame is
 very faint and may potentially have screwed up the fine tuning of the
 positioning. At least, my untrained eye things so. But that might be
 embarrassingly wrong, who knows. 
-** TODO Check the science frames when OPTIMAL extracted
-* PROG Understanding data
+** DONE Check the science frames when OPTIMAL extracted
 :LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 15:25]
+- State "PROG"       from "TODO"       [2021-09-23 Thu 14:40]
+:END:
+* DONE Understanding data
+:LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 15:25]
 - State "PROG"       from              [2021-08-31 Tue 17:26]
 :END:
 ** Preview data
@@ -2161,8 +1738,9 @@ CLOCK: [2021-08-17 Tue 21:41]--[2021-08-17 Tue 21:41] =>  0:00
           print("Restored original keymap.")
 #+END_SRC
 
-** PROG Understanding the Sky                                             :sky:
+** DONE Understanding the Sky                                             :sky:
 :LOGBOOK:
+- State "DONE"       from "PROG"       [2021-09-23 Thu 15:25]
 - State "PROG"       from              [2021-09-01 Wed 16:57]
 CLOCK: [2021-08-31 Tue 15:30]--[2021-08-31 Tue 17:00] =>  1:30
 CLOCK: [2021-08-31 Tue 09:30]--[2021-08-31 Tue 13:20] =>  3:50
@@ -2236,6 +1814,10 @@ column is a 1D spectrum of a sky fiber.
   tmp = plot(median(medmedianan, 1), ls="-", color="c", lw=3, zorder=6)
 #+END_SRC
 
+#+RESULTS:
+: 1.0260587
+: 1.3647907
+
 **** Make stack of each OB's sky fibres to include in master sky later
   
 #+BEGIN_SRC jupyter-python :session sky :cache nil :var OBs=OBs
@@ -2243,7 +1825,7 @@ column is a 1D spectrum of a sky fiber.
   for k in skystacks.keys(): skystacks[k] = []
   for d in skydata.keys():
       # print(d, skyOBs[d])
-      skystacks[skyOBs[d]].append(skydata[d])
+      skystacks[d].append(skydata[d])
   
   for o in skystacks.keys():
       # print(len(skystacks[o]))
@@ -2282,14 +1864,14 @@ column is a 1D spectrum of a sky fiber.
   specOBs = {}
   specIDs = {}
   
-  for i, p in enumerate(specpaths):
-      specOBs[i] = fits.getheader(p)["HIERARCH ESO OBS NAME"]
-      specIDs[i] = fits.getheader(p)["OBJECT"]
-      specdata[i] = fits.getdata(p)
+  for OB in OBs:
+      for i, p in enumerate(specpaths[OB]):
+          specOBs[i] = fits.getheader(p)["HIERARCH ESO OBS NAME"]
+          specIDs[i] = fits.getheader(p)["OBJECT"]
+          specdata[i] = fits.getdata(p)
   #+END_SRC
 
-  #+RESULTS:
-  
+
 **** Load spectra by OB and stuff in a hopefully future proof way
 
 #+BEGIN_SRC jupyter-python :session sky :cache nil :var OBs=OBs
@@ -2426,7 +2008,10 @@ differing in throughput. Fairly easy for the blue setting, but will
 probably be quite hard in the redder settings that have strong sky
 emission lines, not just scattered moonlight.
 
-**** TODO REMINDER do the below OB-by-OB
+**** DONE REMINDER do the below OB-by-OB
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2021-09-23 Thu 15:25]
+:END:
 **** Scale them by the ratio of median pixels
 :LOGBOOK:
 CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
@@ -2482,7 +2067,7 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
   slits = specdict[OBname]
   scaledsky = scaledskies[OBname]
   skysubbed = skysubbed_obs[OBname]
-  colorcut = 15
+  colorcut = 5
   norm = simple_norm(unv(slits), min_cut=-colorcut, max_cut=colorcut, stretch='linear')
   # cmap = "cubehelix"
   cmap = icefire
@@ -2700,8 +2285,9 @@ CLOCK: [2021-09-01 Wed 13:30]--[2021-09-01 Wed 16:56] =>  3:26
 #+END_SRC
 
 #+RESULTS[cf6472d48eb5618afc48f4ac8cd64fb1d058d150]:
-: array([[-0.047499  ,  0.21779814],
-:        [-0.07879921,  0.23616917]])
+: array([[-0.04749585,  0.21781602],
+:        [-0.07829324,  0.23636025]])
+
 
 
 ***** Old one:
