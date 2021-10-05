@@ -137,8 +137,6 @@ Nope. Not in the pipeline. (p. 17).
 #+attr_org: :width 700px
 [[file:org-download/2021-08-21_03-21-48_screenshot.png]]
 
-
-
 ** 3. The pipeline: Gasgano
 
 * Observation settings
@@ -1364,7 +1362,6 @@ It was alredy there!
 #+end_src
 
 
-
 **** DONE Figure out why this doesn't work
 :LOGBOOK:
 - State "DONE"       from "WAIT"       [2021-09-23 Thu 14:31]
@@ -1789,7 +1786,7 @@ column is a 1D spectrum of a sky fiber.
       for l in output_lines: skypaths[OB].append(l.split("\t")[0].strip())
 #+END_SRC
 
-#+RESULTS[acccba9d21b18e2398c77525a5eb0706ffb1b624]:
+#+RESULTS[c380b01e06c530ecd8084503157c18aec38589b6]:
 
 *** Open sky files
 **** First just make indexed lists
@@ -1871,6 +1868,7 @@ column is a 1D spectrum of a sky fiber.
           specdata[i] = fits.getdata(p)
   #+END_SRC
 
+  #+RESULTS:
 
 **** Load spectra by OB and stuff in a hopefully future proof way
 
@@ -1995,6 +1993,8 @@ Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
 #+END_SRC
 
 #+RESULTS:
+: /home/trive/anaconda3/lib/python3.7/site-packages/matplotlib/colors.py:235: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray
+:   c = np.array(c)
 
 :outimage:
 #+attr_org: :width 700px
@@ -2166,6 +2166,59 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
   legend()
 #+END_SRC
 
+*** Check SNR of brightes object
+**** Create the relevant variables etc. 
+#+BEGIN_SRC jupyter-python :session sky
+  wave = stacked_obs_table["wave"] * 10
+  flux, errs = stacked_obs_table["mw126015035_data"], stacked_obs_table["mw126015035_errs"]
+  uflux = unp.uarray(flux, errs)
+  
+  lamlo  = 5055.8
+  lamhi  = 5072.9
+  
+  lidx = where((wave > lamlo) & (wave < lamhi))
+  nidx = where((wave > 4950) & (wave < 5050))
+#+END_SRC
+
+#+RESULTS[a4f9e788e37398eec6f10cc63e5a370b3ed759c1]:
+
+**** The SNRs, all of them
+#+BEGIN_SRC jupyter-python :session sky :cache nil
+  usum = uflux[lidx].sum()
+  
+  # snr1 = unv(usum) / std(usum)
+  snr1 = usum.n / usum.s
+  
+  S = flux[lidx].sum()
+  N = sqrt((errs[lidx]**2).sum())
+  
+  snr2 = S / N
+  
+  N2 = flux[nidx].std()
+  L = len(where(lidx)[0])
+  snr3 = S / (N2 * sqrt(L))
+  
+  snr1, snr2, snr3
+#+END_SRC
+
+#+RESULTS:
+| 2.2445611755053965 | 2.2445611755053974 | 5.265660784024975 |
+
+**** Plot to check all is good
+#+BEGIN_SRC jupyter-python :session sky :cache nil :results silent
+  kwidth = 75
+  kernel = np.ones(kwidth) / kwidth
+  sflux = convolve(flux, kernel, mode="same")
+  figure(dpi=200)
+  plot(wave, flux)
+  plot(wave, errs)
+  plot(wave[lidx], flux[lidx])
+  plot(wave[lidx], errs[lidx])
+  plot(wave, sflux)
+  axhline(N2, color='0.5', ls=':', zorder=0)
+  axhline(0, color='k', ls='--', zorder=0)
+#+END_SRC
+
 *** Check the error behavior, Matt style
 :LOGBOOK:
 CLOCK: [2021-09-01 Wed 20:10]--[2021-09-01 Wed 23:46] =>  3:36
@@ -2288,8 +2341,6 @@ CLOCK: [2021-09-01 Wed 13:30]--[2021-09-01 Wed 16:56] =>  3:26
 : array([[-0.04749585,  0.21781602],
 :        [-0.07829324,  0.23636025]])
 
-
-
 ***** Old one:
 : array([[-0.04508362,  0.25937943],
 :        [-0.05128429,  0.21186306]])
@@ -2300,11 +2351,12 @@ CLOCK: [2021-09-01 Wed 13:30]--[2021-09-01 Wed 16:56] =>  3:26
   OOIs = Table(OOIs)
   OOIs.sort('luminosity', reverse=True)
   targets = OOIs['object'][:5]
+  targinfo = OOIs[:5]
   print(OOIs)
-  print(targets)
+  print(targinfo)
 #+END_SRC
 
-#+RESULTS[b78502119d0d3838a1588146ce2d6392d4b5d227]:
+#+RESULTS[1b2b59bb641dd06fd78abfed5a8e19b0ef3a87e7]:
 #+begin_example
      object    luminosity z_Lya 
   ------------ ---------- ------
@@ -2331,13 +2383,13 @@ CLOCK: [2021-09-01 Wed 13:30]--[2021-09-01 Wed 16:56] =>  3:26
         sky218        0.0 -999.0
         sky056        0.0 -999.0
   Length = 132 rows
-     object   
-  ------------
-   mw126015035
-  emw403004047
-   mw115004089
-   mw146007227
-  emw402004146
+     object    luminosity z_Lya 
+  ------------ ---------- ------
+   mw126015035      42.97  3.164
+  emw403004047      42.87 3.1354
+   mw115004089      42.84 3.0267
+   mw146007227      42.79 3.0556
+  emw402004146      42.76  3.125
 #+end_example
 
 *** make the plot
@@ -2371,6 +2423,76 @@ CLOCK: [2021-09-01 Wed 13:30]--[2021-09-01 Wed 16:56] =>  3:26
 #+attr_org: :width 500px
 [[file:Figures/BrightLyas.png]]
 :end:
+
+* WONTDO Check SNR of brightest object
+:LOGBOOK:
+- State "WONTDO"     from              [2021-10-05 Tue 16:18]
+:END:
+** Imports & setup
+#+BEGIN_SRC jupyter-python :session brightsnr :results silent
+  %pylab
+  
+  from astropy.io import fits
+  from astropy.table import Table
+  
+  from uncertainties.unumpy import uarray, nominal_values, std_devs
+  
+  stackpath = "/home/trive/Arbejde/AAB-LyaFLAMES/Data/Runs/106.219R.001/science_products/stacks/mw126015035_1D.ecsv"
+#+END_SRC
+
+** Next.... thing.
+#+BEGIN_SRC jupyter-python :session brightsnr
+  fluxtable = Table.read(stackpath)
+  print(fluxtable)
+#+END_SRC
+
+#+RESULTS[402b2edf38f69265512595244378984ba135f13a]:
+#+begin_example
+     wave          flux               std                snr        
+   Angstrom        adu                adu                           
+  --------- ------------------ ------------------ ------------------
+   4498.688  25.68206024169922 2.9033837775362685  8.845561665117627
+   4498.888 13.798957824707031  2.674503967998706 5.1594456354583755
+   4499.088  3.739696979522705  2.662502400004138 1.4045797590705995
+   4499.288 15.652979850769043 2.6608967736632674  5.882595674397216
+  4499.4883 17.127975463867188  2.652176084944181  6.458083820715724
+   4499.688 16.351572036743164 2.6802199235937536 6.1008322088801865
+   4499.888 18.281362533569336  2.744383442829769  6.661373279063071
+  4500.0884  9.079835891723633  2.742980458536538  3.310208012407058
+   4500.288 2.4442431926727295  2.561890286175902 0.9540780125761034
+   4500.488 11.785313606262207 2.6223067819919046   4.49425432874413
+        ...                ...                ...                ...
+   5075.848 12.682451248168945  3.637145574420258  3.486924289575751
+  5076.0483  16.60905647277832 3.7104348978832458  4.476309901638099
+   5076.248 7.1889753341674805   3.48940401165017 2.0602301453673606
+   5076.448 13.144828796386719  3.650103201526447 3.6012211355803982
+  5076.6484 17.495054244995117  3.559382953043718  4.915193019631298
+   5076.848  25.19823455810547 3.7278236760544763  6.759502795147019
+   5077.048 17.195249557495117 3.6300450105579305  4.736924613188816
+   5077.248 22.879905700683594  3.741463407756966  6.115229044669519
+   5077.448 23.628808975219727 3.7220576500033977  6.348318913114674
+   5077.648                0.0                0.0                 --
+  Length = 2896 rows
+#+end_example
+
+** And ... next
+#+BEGIN_SRC jupyter-python :session brightsnr
+  lamlo  = 5055.8
+  lamhi  = 5072.9
+  
+  wave = fluxtable["wave"]
+  flux = fluxtable["flux"]
+  std = fluxtable["std"]
+  lidx = np.where((wave > lamlo) & (wave < lamhi))
+  
+  wavesec, fluxsec, errssec = wave[lidx], flux[lidx], std[lidx]
+  fluxu = uarray(fluxsec, errssec)
+  SNRscalar = fluxu.sum()
+  print(SNRscalar)
+#+END_SRC
+
+#+RESULTS[59e0c1c9092d4de843fdb3ccc15d5ecdbb284603]:
+: 1467+/-33
 
 * DONE Check disp sol vs. reference disp sol
 :LOGBOOK:
