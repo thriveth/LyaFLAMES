@@ -1392,13 +1392,15 @@ listed in the pipeline manual. Adding that, it worked!
 #+RESULTS[8c8d14343998b2692d879f121b8cf19d2a25c033]:
   
 #+BEGIN_SRC jupyter-python :session pipeline :var runID=runID OBs=OBs
+  fig, ax = subplots(1, 1, dpi=200)
+  obcolors = {"GOODSS_F3_2": "blue", "GOODSS_F3_3": "green"}
   for thing in objnames:
       dfs = []
       for OB in OBs:
           folderpath = f"Data/Runs/{runID}/science_products/{OB}/"
           stackpath = f"Data/Runs/{runID}/science_products/stacks/"
           thingpath = f"{folderpath}{thing}_1D.fits"
-          sp = fits.getdata(n, 1)
+          sp = fits.getdata(thingpath, 1)
           sdict = {m: sp[m].flatten() for m in sp.columns.names}
           sdf = pd.DataFrame.from_dict(sdict)
           sdf["WAVE"] *= 10
@@ -1408,17 +1410,19 @@ listed in the pipeline manual. Adding that, it worked!
           st["wave"] *= u.AA
           st["flux"] *= u.adu
           st["std"] *= u.adu
+          ax.plot(st["wave"], st["flux"], lw=.1, alpha=.5, color=obcolors[OB])
           st.write(f"{folderpath}{thing}_1D.ecsv", overwrite=True)
       stackdf = dfs[0].copy()
-      stackdf['flux'] = vstack([a['flux'] for a in dfs]).sum(axis=0)
-      stds = vstack([a['std']**2 for a in dfs])
-      stackdf["std"] = sqrt(stds.sum(0))
+      stackdf['flux'] = np.vstack([a['flux'] for a in dfs]).sum(axis=0)/len(dfs)
+      stds = np.vstack([a['std']**2 for a in dfs])
+      stackdf["std"] = sqrt(stds.sum(0))/len(dfs)
       stackdf['snr'] = stackdf['flux'] / stackdf['std']
       stackt = Table.from_pandas(stackdf)
       stackt["wave"] *= u.AA
       stackt["flux"] *= u.adu
       stackt["std"] *= u.adu
-      stackt.write(f"{stackpath}{thing}_1D.ecsv", overwrite=True)
+      ax.plot(stackt["wave"], stackt["flux"], lw=.2, alpha=.5, color="k")
+      tackt.write(f"{stackpath}{thing}_1D.ecsv", overwrite=True)
 #+END_SRC
 
 #+RESULTS[edca2d85bc109fc09b5472962bb10601ce2538e4]:
@@ -1497,8 +1501,10 @@ Kind of a sandbox kind of place, not to be super structured.
 *** Load data
 
 #+BEGIN_SRC jupyter-python :session default :cache nil
-  filepath = "./Data/reduced_science_products/"
-  readmepath = filepath + "README_647312.txt"
+  # filepath = "./Data/reduced_science_products/"
+  # readmepath = filepath + "README_647312.txt"
+  filepath = "./Data/Runs/106.219R.002/pipeline_products/"
+  readmepath = filepath + "readme_0d104cf8-c846-4590-9d63-73d3698d0717.txt"
   
   readme = open(readmepath, 'r')
   lines = readme.readlines()
@@ -1512,19 +1518,226 @@ Kind of a sandbox kind of place, not to be super structured.
 #+END_SRC
 
 #+RESULTS[ce3691037f0021f3fdab050ba8ec251ff16f3c91]:
-:RESULTS:
-# [goto error]
-: 
-: FileNotFoundErrorTraceback (most recent call last)
-: <ipython-input-2-4645fcbe42bf> in <module>
-:       3 
-:       4 
-: ----> 5 readme = open(readmepath, 'r')
-:       6 lines = readme.readlines()
-:       7 datafiles = {}
-: 
-: FileNotFoundError: [Errno 2] No such file or directory: './Data/reduced_science_products/README_647312.txt'
-:END:
+#+begin_example
+  Bingo! ADP.2021-09-09T07:51:15.867.fits SCIENCE.SPECTRUM mw146063348
+  Bingo! ADP.2021-09-09T07:51:15.749.fits SCIENCE.SPECTRUM mw132049103
+  Bingo! ADP.2021-09-09T07:51:15.627.fits SCIENCE.SPECTRUM mw137073149
+  Bingo! ADP.2021-02-12T14:39:30.880.fits SCIENCE.SPECTRUM mw128045247
+  Bingo! ADP.2021-02-12T14:39:30.884.fits SCIENCE.SPECTRUM mudf3521
+  Bingo! ADP.2021-02-12T14:39:30.760.fits SCIENCE.SPECTRUM emw303057115
+  Bingo! ADP.2021-09-09T07:51:15.863.fits SCIENCE.SPECTRUM emw158048156
+  Bingo! ADP.2021-02-12T14:39:30.888.fits SCIENCE.SPECTRUM mw103050126
+  Bingo! ADP.2021-09-09T07:51:15.745.fits SCIENCE.SPECTRUM mw103050126
+  Bingo! ADP.2021-02-12T14:39:30.764.fits SCIENCE.SPECTRUM emw149043225
+  Bingo! ADP.2021-09-09T07:51:15.987.fits SCIENCE.SPECTRUM emw403033115
+  Bingo! ADP.2021-02-12T14:39:30.768.fits SCIENCE.SPECTRUM mw137073149
+  Bingo! ADP.2021-09-09T07:51:15.619.fits SCIENCE.SPECTRUM emw147049145
+  Bingo! ADP.2021-09-09T07:51:15.859.fits SCIENCE.SPECTRUM mudf313
+  Bingo! ADP.2021-09-09T07:51:16.328.fits SCIENCE.SPECTRUM mw136039190
+  Bingo! ADP.2021-09-09T07:51:16.206.fits SCIENCE.SPECTRUM emw304047228
+  Bingo! ADP.2021-02-12T14:39:30.892.fits SCIENCE.SPECTRUM mw125046119
+  Bingo! ADP.2021-02-12T14:39:30.772.fits SCIENCE.SPECTRUM emw160038106
+  Bingo! ADP.2021-09-09T07:51:15.611.fits SCIENCE.SPECTRUM mudf3093
+  Bingo! ADP.2021-09-09T07:51:15.731.fits SCIENCE.SPECTRUM mw131041145
+  Bingo! ADP.2021-02-12T14:39:30.896.fits SCIENCE.SPECTRUM mudf7337
+  Bingo! ADP.2021-02-12T14:39:30.776.fits SCIENCE.SPECTRUM emw156059331
+  Bingo! ADP.2021-09-09T07:51:15.851.fits SCIENCE.SPECTRUM xin6539
+  Bingo! ADP.2021-09-09T07:51:15.405.fits SCIENCE.SPECTRUM emw162046138
+  Bingo! ADP.2021-09-09T07:51:16.097.fits SCIENCE.SPECTRUM mudf7319
+  Bingo! ADP.2021-02-12T14:39:31.100.fits SCIENCE.SPECTRUM emw157057329
+  Bingo! ADP.2021-09-09T07:51:15.649.fits SCIENCE.SPECTRUM mw102049176
+  Bingo! ADP.2021-02-12T14:39:31.104.fits SCIENCE.SPECTRUM mudf7385
+  Bingo! ADP.2021-02-12T14:39:31.108.fits SCIENCE.SPECTRUM mw146063348
+  Bingo! ADP.2021-02-12T14:39:30.780.fits SCIENCE.SPECTRUM emw147052150
+  Bingo! ADP.2021-02-12T14:39:30.784.fits SCIENCE.SPECTRUM mudf7285
+  Bingo! ADP.2021-02-12T14:39:30.788.fits SCIENCE.SPECTRUM mudf7313
+  Bingo! ADP.2021-09-09T07:51:15.887.fits SCIENCE.SPECTRUM emw402071324
+  Bingo! ADP.2021-09-09T07:51:15.761.fits SCIENCE.SPECTRUM mudf6507
+  Bingo! ADP.2021-09-09T07:51:15.999.fits SCIENCE.SPECTRUM mudf7225
+  Bingo! ADP.2021-09-09T07:51:15.757.fits SCIENCE.SPECTRUM mw124033068
+  Bingo! ADP.2021-09-09T07:51:15.515.fits SCIENCE.SPECTRUM emw149043225
+  Bingo! ADP.2021-02-12T14:39:31.112.fits SCIENCE.SPECTRUM mw123027133
+  Bingo! ADP.2021-02-12T14:39:31.116.fits SCIENCE.SPECTRUM emw148039109
+  Bingo! ADP.2021-02-12T14:39:30.792.fits SCIENCE.SPECTRUM emw151046145
+  Bingo! ADP.2021-02-12T14:39:30.796.fits SCIENCE.SPECTRUM emw158050158
+  Bingo! ADP.2021-09-09T07:51:15.633.fits SCIENCE.SPECTRUM mw117027076
+  Bingo! ADP.2021-09-09T07:51:15.511.fits SCIENCE.SPECTRUM emw148039109
+  Bingo! ADP.2021-09-09T07:51:15.199.fits SCIENCE.SPECTRUM mudf4323
+  Bingo! ADP.2021-09-09T07:51:15.993.fits SCIENCE.SPECTRUM mw117029078
+  Bingo! ADP.2021-02-12T14:39:31.084.fits SCIENCE.SPECTRUM mudf619
+  Bingo! ADP.2021-09-09T07:51:15.707.fits SCIENCE.SPECTRUM mudf6462
+  Bingo! ADP.2021-09-09T07:51:15.829.fits SCIENCE.SPECTRUM mudf603
+  Bingo! ADP.2021-02-12T14:39:31.088.fits SCIENCE.SPECTRUM emw157061333
+  Bingo! ADP.2021-09-09T07:51:15.823.fits SCIENCE.SPECTRUM emw161022049
+  Bingo! ADP.2021-09-09T07:51:15.947.fits SCIENCE.SPECTRUM mw120021030
+  Bingo! ADP.2021-09-09T07:51:16.073.fits SCIENCE.SPECTRUM xin3922
+  Bingo! ADP.2021-02-12T14:39:30.960.fits SCIENCE.SPECTRUM xin5071
+  Bingo! ADP.2021-02-12T14:39:30.840.fits SCIENCE.SPECTRUM mw117028077
+  Bingo! ADP.2021-02-12T14:39:30.964.fits SCIENCE.SPECTRUM mw117029078
+  Bingo! ADP.2021-02-12T14:39:30.844.fits SCIENCE.SPECTRUM mw132049103
+  Bingo! ADP.2021-09-09T07:51:15.943.fits SCIENCE.SPECTRUM mudf1478
+  Bingo! ADP.2021-02-12T14:39:30.720.fits SCIENCE.SPECTRUM emw302035135
+  Bingo! ADP.2021-02-12T14:39:31.080.fits SCIENCE.SPECTRUM emw153046123
+  Bingo! ADP.2021-02-12T14:39:30.968.fits SCIENCE.SPECTRUM mudf6507
+  Bingo! ADP.2021-02-12T14:39:30.848.fits SCIENCE.SPECTRUM emw160037105
+  Bingo! ADP.2021-09-09T07:51:15.387.fits SCIENCE.SPECTRUM emw156059331
+  Bingo! ADP.2021-02-12T14:39:30.724.fits SCIENCE.SPECTRUM mudf7327
+  Bingo! ADP.2021-02-12T14:39:31.096.fits SCIENCE.SPECTRUM emw403033115
+  Bingo! ADP.2021-09-09T07:51:15.819.fits SCIENCE.SPECTRUM mw107041159
+  Bingo! ADP.2021-09-09T07:51:16.081.fits SCIENCE.SPECTRUM mw128044246
+  Bingo! ADP.2021-02-12T14:39:30.728.fits SCIENCE.SPECTRUM mw136039190
+  Bingo! ADP.2021-09-09T07:51:15.933.fits SCIENCE.SPECTRUM mw128045247
+  Bingo! ADP.2021-09-09T07:51:16.089.fits SCIENCE.SPECTRUM xin13066
+  Bingo! ADP.2021-02-12T14:39:30.972.fits SCIENCE.SPECTRUM mudf7387
+  Bingo! ADP.2021-09-09T07:51:15.379.fits SCIENCE.SPECTRUM emw153046123
+  Bingo! ADP.2021-02-12T14:39:30.976.fits SCIENCE.SPECTRUM mw116039142
+  Bingo! ADP.2021-02-12T14:39:30.852.fits SCIENCE.SPECTRUM mw146069355
+  Bingo! ADP.2021-02-12T14:39:30.732.fits SCIENCE.SPECTRUM mudf313
+  Bingo! ADP.2021-02-12T14:39:31.092.fits SCIENCE.SPECTRUM emw161022049
+  Bingo! ADP.2021-02-12T14:39:30.856.fits SCIENCE.SPECTRUM mw121035080
+  Bingo! ADP.2021-02-12T14:39:30.736.fits SCIENCE.SPECTRUM emw161021048
+  Bingo! ADP.2021-09-09T07:51:16.053.fits SCIENCE.SPECTRUM mudf6412
+  Bingo! ADP.2021-09-09T07:51:15.727.fits SCIENCE.SPECTRUM emw149044226
+  Bingo! ADP.2021-09-09T07:51:15.847.fits SCIENCE.SPECTRUM mw117028077
+  Bingo! ADP.2021-09-09T07:51:16.298.fits SCIENCE.SPECTRUM mw121035080
+  Bingo! ADP.2021-09-09T07:51:15.283.fits SCIENCE.SPECTRUM emw150022052
+  Bingo! ADP.2021-02-12T14:39:30.740.fits SCIENCE.SPECTRUM mudf2757
+  Bingo! ADP.2021-02-12T14:39:30.980.fits SCIENCE.SPECTRUM emw158049157
+  Bingo! ADP.2021-02-12T14:39:30.860.fits SCIENCE.SPECTRUM emw162046138
+  Bingo! ADP.2021-02-12T14:39:30.744.fits SCIENCE.SPECTRUM mudf7319
+  Bingo! ADP.2021-09-09T07:51:15.965.fits SCIENCE.SPECTRUM emw157057329
+  Bingo! ADP.2021-02-12T14:39:30.984.fits SCIENCE.SPECTRUM emw150022052
+  Bingo! ADP.2021-09-09T07:51:15.601.fits SCIENCE.SPECTRUM mw136044198
+  Bingo! ADP.2021-02-12T14:39:30.864.fits SCIENCE.SPECTRUM mw124033068
+  Bingo! ADP.2021-02-12T14:39:30.748.fits SCIENCE.SPECTRUM mw128044246
+  Bingo! ADP.2021-09-09T07:51:15.289.fits SCIENCE.SPECTRUM mw129026144
+  Bingo! ADP.2021-02-12T14:39:30.988.fits SCIENCE.SPECTRUM mw136041192
+  Bingo! ADP.2021-02-12T14:39:30.868.fits SCIENCE.SPECTRUM mudf3093
+  Bingo! ADP.2021-09-09T07:51:16.181.fits SCIENCE.SPECTRUM mudf7385
+  Bingo! ADP.2021-09-09T07:51:16.185.fits SCIENCE.SPECTRUM emw160037105
+  Bingo! ADP.2021-09-09T07:51:15.837.fits SCIENCE.SPECTRUM mudf6501
+  Bingo! ADP.2021-09-09T07:51:16.067.fits SCIENCE.SPECTRUM mw130033059
+  Bingo! ADP.2021-02-12T14:39:30.872.fits SCIENCE.SPECTRUM emw148045118
+  Bingo! ADP.2021-02-12T14:39:30.752.fits SCIENCE.SPECTRUM mw145045104
+  Bingo! ADP.2021-02-12T14:39:30.992.fits SCIENCE.SPECTRUM mudf1582
+  Bingo! ADP.2021-09-09T07:51:15.271.fits SCIENCE.SPECTRUM mudf7327
+  Bingo! ADP.2021-02-12T14:39:30.876.fits SCIENCE.SPECTRUM mudf2733
+  Bingo! ADP.2021-02-12T14:39:30.756.fits SCIENCE.SPECTRUM mudf6501
+  Bingo! ADP.2021-02-12T14:39:30.996.fits SCIENCE.SPECTRUM emw301040645
+  Bingo! ADP.2021-09-09T07:51:15.399.fits SCIENCE.SPECTRUM emw302035135
+  Bingo! ADP.2021-02-12T14:39:31.040.fits SCIENCE.SPECTRUM emw402071324
+  Bingo! ADP.2021-09-09T07:51:15.907.fits SCIENCE.SPECTRUM mudf2733
+  Bingo! ADP.2021-02-12T14:39:30.916.fits SCIENCE.SPECTRUM emw303049103
+  Bingo! ADP.2021-09-09T07:51:15.229.fits SCIENCE.SPECTRUM emw147052150
+  Bingo! ADP.2021-02-12T14:39:31.044.fits SCIENCE.SPECTRUM xin6539
+  Bingo! ADP.2021-02-12T14:39:31.048.fits SCIENCE.SPECTRUM mw121034079
+  Bingo! ADP.2021-09-09T07:51:16.155.fits SCIENCE.SPECTRUM mw112027079
+  Bingo! ADP.2021-09-09T07:51:15.225.fits SCIENCE.SPECTRUM mudf6395
+  Bingo! ADP.2021-02-12T14:39:30.920.fits SCIENCE.SPECTRUM emw304069259
+  Bingo! ADP.2021-02-12T14:39:30.800.fits SCIENCE.SPECTRUM mw107041159
+  Bingo! ADP.2021-02-12T14:39:30.924.fits SCIENCE.SPECTRUM xin10620
+  Bingo! ADP.2021-09-09T07:51:15.585.fits SCIENCE.SPECTRUM mw125046119
+  Bingo! ADP.2021-09-09T07:51:15.343.fits SCIENCE.SPECTRUM emw303041092
+  Bingo! ADP.2021-02-12T14:39:30.804.fits SCIENCE.SPECTRUM emw158048156
+  Bingo! ADP.2021-02-12T14:39:30.928.fits SCIENCE.SPECTRUM mw102049176
+  Bingo! ADP.2021-02-12T14:39:30.808.fits SCIENCE.SPECTRUM mudf1478
+  Bingo! ADP.2021-02-12T14:39:31.052.fits SCIENCE.SPECTRUM mw120021030
+  Bingo! ADP.2021-02-12T14:39:31.056.fits SCIENCE.SPECTRUM mudf603
+  Bingo! ADP.2021-09-09T07:51:16.167.fits SCIENCE.SPECTRUM mudf1670
+  Bingo! ADP.2021-02-12T14:39:30.932.fits SCIENCE.SPECTRUM mw125051124
+  Bingo! ADP.2021-09-09T07:51:15.695.fits SCIENCE.SPECTRUM emw151044143
+  Bingo! ADP.2021-02-12T14:39:30.936.fits SCIENCE.SPECTRUM emw303041092
+  Bingo! ADP.2021-02-12T14:39:30.812.fits SCIENCE.SPECTRUM mudf1820
+  Bingo! ADP.2021-09-09T07:51:15.333.fits SCIENCE.SPECTRUM mw135049239
+  Bingo! ADP.2021-09-09T07:51:15.455.fits SCIENCE.SPECTRUM mw121034079
+  Bingo! ADP.2021-02-12T14:39:31.064.fits SCIENCE.SPECTRUM mudf6412
+  Bingo! ADP.2021-02-12T14:39:30.816.fits SCIENCE.SPECTRUM mw139065322
+  Bingo! ADP.2021-02-12T14:39:31.068.fits SCIENCE.SPECTRUM emw149044226
+  Bingo! ADP.2021-09-09T07:51:16.256.fits SCIENCE.SPECTRUM xin10620
+  Bingo! ADP.2021-09-09T07:51:16.133.fits SCIENCE.SPECTRUM mw145045104
+  Bingo! ADP.2021-09-09T07:51:15.809.fits SCIENCE.SPECTRUM xin5071
+  Bingo! ADP.2021-09-09T07:51:16.017.fits SCIENCE.SPECTRUM mw136041192
+  Bingo! ADP.2021-09-09T07:51:15.361.fits SCIENCE.SPECTRUM emw157061333
+  Bingo! ADP.2021-02-12T14:39:30.700.fits SCIENCE.SPECTRUM mw129026144
+  Bingo! ADP.2021-02-12T14:39:30.940.fits SCIENCE.SPECTRUM mw119039078
+  Bingo! ADP.2021-09-09T07:51:15.249.fits SCIENCE.SPECTRUM emw303049103
+  Bingo! ADP.2021-02-12T14:39:30.820.fits SCIENCE.SPECTRUM mw119040079
+  Bingo! ADP.2021-02-12T14:39:30.704.fits SCIENCE.SPECTRUM mudf1670
+  Bingo! ADP.2021-09-09T07:51:15.487.fits SCIENCE.SPECTRUM mudf6513
+  Bingo! ADP.2021-02-12T14:39:30.944.fits SCIENCE.SPECTRUM mudf4598
+  Bingo! ADP.2021-02-12T14:39:31.060.fits SCIENCE.SPECTRUM mudf6513
+  Bingo! ADP.2021-02-12T14:39:30.824.fits SCIENCE.SPECTRUM emw304047228
+  Bingo! ADP.2021-02-12T14:39:30.708.fits SCIENCE.SPECTRUM mw135049239
+  Bingo! ADP.2021-02-12T14:39:30.948.fits SCIENCE.SPECTRUM emw160040108
+  Bingo! ADP.2021-09-09T07:51:15.917.fits SCIENCE.SPECTRUM mudf7285
+  Bingo! ADP.2021-02-12T14:39:30.828.fits SCIENCE.SPECTRUM mudf7225
+  Bingo! ADP.2021-02-12T14:39:31.076.fits SCIENCE.SPECTRUM mw136044198
+  Bingo! ADP.2021-09-09T07:51:16.262.fits SCIENCE.SPECTRUM emw302037137
+  Bingo! ADP.2021-09-09T07:51:16.023.fits SCIENCE.SPECTRUM mw125051124
+  Bingo! ADP.2021-09-09T07:51:15.473.fits SCIENCE.SPECTRUM emw404041418
+  Bingo! ADP.2021-02-12T14:39:30.832.fits SCIENCE.SPECTRUM xin13066
+  Bingo! ADP.2021-02-12T14:39:30.712.fits SCIENCE.SPECTRUM mw128055260
+  Bingo! ADP.2021-09-09T07:51:15.237.fits SCIENCE.SPECTRUM mudf7313
+  Bingo! ADP.2021-09-09T07:51:15.479.fits SCIENCE.SPECTRUM emw151046145
+  Bingo! ADP.2021-02-12T14:39:30.952.fits SCIENCE.SPECTRUM xin3922
+  Bingo! ADP.2021-02-12T14:39:30.836.fits SCIENCE.SPECTRUM xin8736
+  Bingo! ADP.2021-02-12T14:39:30.716.fits SCIENCE.SPECTRUM mw119036075
+  Bingo! ADP.2021-02-12T14:39:31.072.fits SCIENCE.SPECTRUM emw147049145
+  Bingo! ADP.2021-02-12T14:39:30.956.fits SCIENCE.SPECTRUM mudf4323
+  Bingo! ADP.2021-02-12T14:39:31.120.fits SCIENCE.SPECTRUM mw134037057
+  Bingo! ADP.2021-02-12T14:39:31.000.fits SCIENCE.SPECTRUM mw112027079
+  Bingo! ADP.2021-09-09T07:51:15.309.fits SCIENCE.SPECTRUM mw123027133
+  Bingo! ADP.2021-02-12T14:39:31.124.fits SCIENCE.SPECTRUM emw302037137
+  Bingo! ADP.2021-09-09T07:51:16.234.fits SCIENCE.SPECTRUM mw142043158
+  Bingo! ADP.2021-02-12T14:39:31.004.fits SCIENCE.SPECTRUM mw143040124
+  Bingo! ADP.2021-02-12T14:39:31.008.fits SCIENCE.SPECTRUM mw142043158
+  Bingo! ADP.2021-09-09T07:51:16.115.fits SCIENCE.SPECTRUM mw143040124
+  Bingo! ADP.2021-09-09T07:51:15.787.fits SCIENCE.SPECTRUM xin4919
+  Bingo! ADP.2021-02-12T14:39:30.687.fits SCIENCE.SPECTRUM emw148050124
+  Bingo! ADP.2021-09-09T07:51:15.547.fits SCIENCE.SPECTRUM emw148050124
+  Bingo! ADP.2021-09-09T07:51:15.667.fits SCIENCE.SPECTRUM mw145052111
+  Bingo! ADP.2021-02-12T14:39:31.012.fits SCIENCE.SPECTRUM mw131041145
+  Bingo! ADP.2021-09-09T07:51:15.537.fits SCIENCE.SPECTRUM mw103044120
+  Bingo! ADP.2021-09-09T07:51:16.240.fits SCIENCE.SPECTRUM mw134037057
+  Bingo! ADP.2021-09-09T07:51:15.419.fits SCIENCE.SPECTRUM emw161021048
+  Bingo! ADP.2021-02-12T14:39:31.016.fits SCIENCE.SPECTRUM mw131036137
+  Bingo! ADP.2021-09-09T07:51:16.244.fits SCIENCE.SPECTRUM mw131036137
+  Bingo! ADP.2021-09-09T07:51:16.121.fits SCIENCE.SPECTRUM mudf7387
+  Bingo! ADP.2021-09-09T07:51:16.005.fits SCIENCE.SPECTRUM xin8736
+  Bingo! ADP.2021-09-09T07:51:16.009.fits SCIENCE.SPECTRUM mw119040079
+  Bingo! ADP.2021-09-09T07:51:15.891.fits SCIENCE.SPECTRUM mudf1820
+  Bingo! ADP.2021-02-12T14:39:30.696.fits SCIENCE.SPECTRUM emw151044143
+  Bingo! ADP.2021-09-09T07:51:15.657.fits SCIENCE.SPECTRUM mw146069355
+  Bingo! ADP.2021-09-09T07:51:15.899.fits SCIENCE.SPECTRUM mudf2757
+  Bingo! ADP.2021-09-09T07:51:15.777.fits SCIENCE.SPECTRUM emw158050158
+  Bingo! ADP.2021-09-09T07:51:15.415.fits SCIENCE.SPECTRUM emw158049157
+  Bingo! ADP.2021-09-09T07:51:15.895.fits SCIENCE.SPECTRUM mw116039142
+  Bingo! ADP.2021-09-09T07:51:15.531.fits SCIENCE.SPECTRUM mudf1582
+  Bingo! ADP.2021-02-12T14:39:31.020.fits SCIENCE.SPECTRUM mw145052111
+  Bingo! ADP.2021-09-09T07:51:15.449.fits SCIENCE.SPECTRUM mw119039078
+  Bingo! ADP.2021-02-12T14:39:31.024.fits SCIENCE.SPECTRUM emw404041418
+  Bingo! ADP.2021-02-12T14:39:31.028.fits SCIENCE.SPECTRUM mudf6395
+  Bingo! ADP.2021-09-09T07:51:16.210.fits SCIENCE.SPECTRUM emw148045118
+  Bingo! ADP.2021-09-09T07:51:16.214.fits SCIENCE.SPECTRUM mudf7337
+  Bingo! ADP.2021-09-09T07:51:15.681.fits SCIENCE.SPECTRUM mudf4598
+  Bingo! ADP.2021-09-09T07:51:15.563.fits SCIENCE.SPECTRUM mw119036075
+  Bingo! ADP.2021-09-09T07:51:15.321.fits SCIENCE.SPECTRUM mw139065322
+  Bingo! ADP.2021-02-12T14:39:30.900.fits SCIENCE.SPECTRUM xin4919
+  Bingo! ADP.2021-09-09T07:51:15.443.fits SCIENCE.SPECTRUM emw402064316
+  Bingo! ADP.2021-09-09T07:51:15.685.fits SCIENCE.SPECTRUM emw301040645
+  Bingo! ADP.2021-02-12T14:39:30.904.fits SCIENCE.SPECTRUM mw117027076
+  Bingo! ADP.2021-02-12T14:39:31.032.fits SCIENCE.SPECTRUM mw103044120
+  Bingo! ADP.2021-09-09T07:51:16.340.fits SCIENCE.SPECTRUM emw160038106
+  Bingo! ADP.2021-02-12T14:39:30.908.fits SCIENCE.SPECTRUM emw402064316
+  Bingo! ADP.2021-02-12T14:39:31.036.fits SCIENCE.SPECTRUM mudf6462
+  Bingo! ADP.2021-09-09T07:51:16.105.fits SCIENCE.SPECTRUM emw303057115
+  Bingo! ADP.2021-09-09T07:51:16.109.fits SCIENCE.SPECTRUM emw160040108
+  Bingo! ADP.2021-09-09T07:51:15.791.fits SCIENCE.SPECTRUM mudf3521
+  Bingo! ADP.2021-09-09T07:51:15.313.fits SCIENCE.SPECTRUM mw128055260
+  Bingo! ADP.2021-09-09T07:51:15.433.fits SCIENCE.SPECTRUM emw304069259
+  Bingo! ADP.2021-02-12T14:39:30.912.fits SCIENCE.SPECTRUM mw130033059
+  Bingo! ADP.2021-09-09T07:51:15.795.fits SCIENCE.SPECTRUM mudf619
+#+end_example
 
 *** Convert all fits files to text files
 :LOGBOOK:
@@ -1540,16 +1753,19 @@ Kind of a sandbox kind of place, not to be super structured.
       flux = spec["FLUX_REDUCED"].flatten()
       errs = spec["ERR_REDUCED"].flatten()
       tabl = Table(array([wave, flux, errs]).T, names=["wave", "flux", "noise"])
-      tabl.write("./Data/reduced_ecsv/reduced_{}.ecsv".format(f), overwrite=True)
+      # tabl.write("./Data/reduced_ecsv/reduced_{}.ecsv".format(f), overwrite=True)
+      tabl.write(f"./Data/Runs/106.219R.002/pipeline_products/reduced_{f}.ecsv",
+                 overwrite=True)
 #+END_SRC
 
-#+RESULTS[413eeb28fd659f82ef85793c1dcebf0cf564148a]:
+#+RESULTS[522961399dc58e6f3b76e951103a632b5de3cd98]:
 
 *** Make list of ecsv's
 #+BEGIN_SRC jupyter-python :session default :results silent
   # specdict = {k: "./Data/reduced_ecsv/reduced_{}.ecsv".format(k) for k in datafiles.keys()}
   # specdict = {k.split('_')[-1].split('.')[0]: k for k in glob.glob("./Data/reduced_ecsv/*.ecsv")}
-  specdict = {k.split('/')[-1].split('_')[0]: k for k in glob.glob("./Data/Runs/106.219R.001/science_products/*.ecsv")}
+  # specdict = {k.split('/')[-1].split('_')[0]: k for k in glob.glob("./Data/Runs/106.219R.001/science_products/*.ecsv")}
+  specdict = {k.split('/')[-1].split('_')[0]: k for k in glob.glob("./Data/Runs/106.219R.002/pipeline_products/*.ecsv")}
 #+END_SRC
 
 *** Make grand object info pane
@@ -1786,7 +2002,7 @@ column is a 1D spectrum of a sky fiber.
       for l in output_lines: skypaths[OB].append(l.split("\t")[0].strip())
 #+END_SRC
 
-#+RESULTS[c380b01e06c530ecd8084503157c18aec38589b6]:
+#+RESULTS[acccba9d21b18e2398c77525a5eb0706ffb1b624]:
 
 *** Open sky files
 **** First just make indexed lists
@@ -1937,13 +2153,13 @@ Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
   
   for OB in OBs:
       obsblocks[OB] = []
-      for i in specdata.keys():
-          specid = specIDs[i]
+      for specid in specdict[OB].columns:
+          # specid = specIDs[i]
           z = objinfo.loc[specid]['z_Lya']
           cenwave = 121.567 * (1 + z)
-          spec = specdata[i]['FLUX_REDUCED'].flatten()
-          errs = specdata[i]['ERR_REDUCED'].flatten()
-          spec = unp.uarray(spec, errs)
+          # spec = unv(specdict[OB][specid])  # ['FLUX_REDUCED'].flatten()
+          # errs = std(specdict[OB][specid])  # ['ERR_REDUCED'].flatten()
+          spec = specdict[OB][specid]  # unp.uarray(spec, errs)
           mask = [(waves > cenwave-2) & (waves < cenwave+2)]
           spec = ma.masked_array(spec, mask, fill_value=np.nan)
           obsblocks[OB].append(spec)
@@ -1960,6 +2176,7 @@ Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
 #+BEGIN_SRC jupyter-python :session sky :cache nil :var OBs=OBs
   skycolors = {'GOODSS_F3_2': 'orange', 'GOODSS_F3_3': 'red'}
   speccolors = {'GOODSS_F3_2': 'cyan', 'GOODSS_F3_3': 'purple'}
+  medcolors = {"GOODSS_F3_2": "green", "GOODSS_F3_3": "blue"}
   smooth_width = 75
   skernel = np.ones(smooth_width) / smooth_width
   OB1, OB2 = None, None
@@ -1973,7 +2190,7 @@ Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
           plot(waves, unp.nominal_values(sdata), ls='-',
                color=speccolors[OB], lw=.1, alpha=.3, label=label)
       plot(waves, convolve(unp.nominal_values(obmedians[OB]), skernel, mode='same'), ls='-', lw=3, color='w', label='_nolegend', zorder=4)
-      plot(waves, convolve(unp.nominal_values(obmedians[OB]), skernel, mode='same'), ls='-', lw=2, color=speccolors[OB], label=f'{OB} median', zorder=4)
+      plot(waves, convolve(unp.nominal_values(obmedians[OB]), skernel, mode='same'), ls='-', lw=2, color=medcolors[OB], label=f'{OB} median', zorder=4)
 
       skystack = skystacks[OB]
       # ds = len(data.shape)
@@ -1993,8 +2210,6 @@ Just a more wieldy version of Matt's tabs. It's called ~objinfo~.
 #+END_SRC
 
 #+RESULTS:
-: /home/trive/anaconda3/lib/python3.7/site-packages/matplotlib/colors.py:235: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray
-:   c = np.array(c)
 
 :outimage:
 #+attr_org: :width 700px
@@ -2049,7 +2264,8 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 #+END_SRC
 
   #+RESULTS:
-  
+**** Make them not Uarrays anymore
+***** Stacked
 #+BEGIN_SRC jupyter-python :session sky :cache nil
   stacked_obs_out = stacked_obs.copy()
   for col in stacked_obs.columns:
@@ -2060,6 +2276,17 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 
 #+RESULTS:
 
+***** Individual wuns
+#+BEGIN_SRC jupyter-python :session sky
+  skysubbed_obs_out = skysubbed_obs.copy()
+  for k in skysybbed_obs_out.keys():
+      for col in sysubbed_obs_columns:
+          skysubbed_obs_out[k][col+'_data'] = unv(skysubbed_obs[k][col])
+          skysubbed_obs_out[k][col+'_errs'] = sdv(skysubbed_obs[k][col])
+          skysubbed_obs_out[k].drop(col, inplace=True, axis=1)
+#+END_SRC
+
+
 **** Plot for sanity check
 #+BEGIN_SRC jupyter-python :session sky :results silent
   fig, axes = subplots(1, 3, dpi=200, sharey=True, sharex=True)
@@ -2067,7 +2294,7 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
   slits = specdict[OBname]
   scaledsky = scaledskies[OBname]
   skysubbed = skysubbed_obs[OBname]
-  colorcut = 5
+  colorcut = 10
   norm = simple_norm(unv(slits), min_cut=-colorcut, max_cut=colorcut, stretch='linear')
   # cmap = "cubehelix"
   cmap = icefire
@@ -2095,6 +2322,8 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 :end:
 
 **** Save sky subracted science fibres
+
+***** Stacked
 #+BEGIN_SRC jupyter-python :session sky :results raw :cache nil
   stacked_obs_out["wave"] = waves
   stacked_obs_table = Table.from_pandas(stacked_obs_out)
@@ -2103,6 +2332,16 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 #+END_SRC
 
 #+RESULTS:
+
+***** Individual OBs
+#+BEGIN_SRC jupyter-python :session sky :results silent
+  for OB, df in skysubbed_obs_out.items():
+      df["wave"] = waves
+      df_table = Table.from_pandas(df)
+      df_table.write(f"./Products/Runs/{runID}/science_products/{OB}/skysubbed_fibres_unc.ecsv")
+      print(f"./Products/Runs/{runID}/science_products/{OB}/skysubbed_fibres_unc.ecsv")
+#+END_SRC
+
 
 **** Plot individual spectra
 
@@ -2169,8 +2408,10 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 *** Check SNR of brightes object
 **** Create the relevant variables etc. 
 #+BEGIN_SRC jupyter-python :session sky
-  wave = stacked_obs_table["wave"] * 10
-  flux, errs = stacked_obs_table["mw126015035_data"], stacked_obs_table["mw126015035_errs"]
+  OB = "GOODSS_F3_2"
+  tab = skysubbed_obs_out[OB]
+  wave = tab["wave"] * 10
+  flux, errs = tab["mw126015035_data"], tab["mw126015035_errs"]
   uflux = unp.uarray(flux, errs)
   
   lamlo  = 5055.8
@@ -2182,6 +2423,14 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 
 #+RESULTS[a4f9e788e37398eec6f10cc63e5a370b3ed759c1]:
 
+**** Load archival spectrum
+Got it from Matt
+#+BEGIN_SRC jupyter-python :session sky
+  otherspec = genfromtxt("./Data/emission_spectrum_candels-cdfs-26_126015035.txt")
+#+END_SRC
+
+#+RESULTS[639f71bdccc4bd6b473406e5689f066dc1334eb1]:
+
 **** The SNRs, all of them
 #+BEGIN_SRC jupyter-python :session sky :cache nil
   usum = uflux[lidx].sum()
@@ -2189,12 +2438,12 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
   # snr1 = unv(usum) / std(usum)
   snr1 = usum.n / usum.s
   
-  S = flux[lidx].sum()
-  N = sqrt((errs[lidx]**2).sum())
+  S = flux.values[lidx].sum()
+  N = sqrt((errs.values[lidx]**2).sum())
   
   snr2 = S / N
   
-  N2 = flux[nidx].std()
+  N2 = flux.values[nidx].std()
   L = len(where(lidx)[0])
   snr3 = S / (N2 * sqrt(L))
   
@@ -2204,6 +2453,9 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
 #+RESULTS:
 | 2.2445611755053965 | 2.2445611755053974 | 5.265660784024975 |
 
+- For =GOODSS_F3_3= ::
+  ~Out[166]: (1.352838871515341, 1.352838871515341, 1.9128411786927446)~
+
 **** Plot to check all is good
 #+BEGIN_SRC jupyter-python :session sky :cache nil :results silent
   kwidth = 75
@@ -2211,10 +2463,14 @@ CLOCK: [2021-08-27 Fri 10:27]--[2021-08-27 Fri 10:28] =>  0:01
   sflux = convolve(flux, kernel, mode="same")
   figure(dpi=200)
   plot(wave, flux)
-  plot(wave, errs)
-  plot(wave[lidx], flux[lidx])
-  plot(wave[lidx], errs[lidx])
-  plot(wave, sflux)
+  plot(wave, errs
+  plot(wave.values[lidx], flux.values[lidx])
+  plot(wave.values[lidx], errs.values[lidx])
+  plot(wave, sflux, lw=3.4, color='w')
+  plot(wave, sflux, lw=1.8)
+  osn = median(otherspec[:, 1])
+  # plot(otherspec[:,0], otherspec[:, 1]/osn, color='w', lw=3.2)
+  plot(otherspec[:,0], otherspec[:, 1]/osn, color='k', lw=1.8)
   axhline(N2, color='0.5', ls=':', zorder=0)
   axhline(0, color='k', ls='--', zorder=0)
 #+END_SRC
